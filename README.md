@@ -22,28 +22,28 @@ A C(Simple) Compiler written in Lex & Yacc (and some C)
 
 We support the following operators, which follow the operator precedence table from the language C:
 
-* && 
-* /
-* =
-* ==
-* >
-* >=
-* <
-* <=
-* -
-* !
-* !=
-* ||
-* +
-* *
-* &
-* ^
+* `&&` 
+* `/`
+* `=`
+* `==`
+* `>`
+* `>=`
+* `<`
+* `<=`
+* `-`
+* `!`
+* `!=`
+* `||`
+* `+`
+* `*`
+* `&`
+* `^`
 
 ### Literal Lexemes 
 
 * boolean: "true" or "false"
 * char: A character literal is a single, printable character, enclosed in single quotes. 
-    # Examples:
+    * *Examples*:
     * 'a' : lowercase a
     * 'A' : uppercase a
     * "a" : not a character; there are double quotes, and hence, this is a string
