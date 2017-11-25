@@ -375,8 +375,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 52
-#define YY_END_OF_BUFFER 53
+#define YY_NUM_RULES 53
+#define YY_END_OF_BUFFER 54
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -386,7 +386,7 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[112] =
     {   0,
-        0,    0,   53,   51,   50,   50,   24,   51,   29,   51,
+        0,    0,   54,   52,   51,   50,   24,   52,   29,   52,
        45,   46,   28,   27,   42,   23,   16,   36,   34,   34,
        41,   40,   21,   17,   19,   38,   49,   48,   30,   38,
        38,   38,   38,   38,   38,   38,   38,   38,   38,   38,
@@ -1005,22 +1005,22 @@ printf("LT_CHAR ");
 case 34:
 YY_RULE_SETUP
 #line 54 "s.demo.l"
-{ printf("LT_INTEGER_INTEGER "); }
+{ printf("LT_INTEGER "); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 55 "s.demo.l"
-printf("LT_INTEGER_HEX ");
+printf("LT_HEX ");
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 56 "s.demo.l"
-printf("LT_INTEGER_OCT ");
+printf("LT_OCT ");
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 57 "s.demo.l"
-printf("LT_INTEGER_BIN ");
+printf("LT_BIN ");
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
@@ -1087,19 +1087,24 @@ case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
 #line 75 "s.demo.l"
-/* ignore blank spaces */
+printf("\n\n"); 
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 76 "s.demo.l"
-printf("ERROR!");
+#line 77 "s.demo.l"
+/* ignore blank spaces */
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 77 "s.demo.l"
+#line 78 "s.demo.l"
+printf("ERROR!");
+	YY_BREAK
+case 53:
+YY_RULE_SETUP
+#line 79 "s.demo.l"
 ECHO;
 	YY_BREAK
-#line 1103 "lex.yy.c"
+#line 1108 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2100,7 +2105,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 77 "s.demo.l"
+#line 79 "s.demo.l"
 
 
 /* subroutines */

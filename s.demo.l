@@ -72,7 +72,9 @@
 "[" printf("T_L_BRACKET "); 
 
 
-[ \t\r\n]                /* ignore blank spaces */
+"\n"                printf("\n\n"); 
+
+[ \t\r]               /* ignore blank spaces */
 .  printf("ERROR!");
 %%
 /* subroutines */
