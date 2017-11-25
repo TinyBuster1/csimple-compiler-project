@@ -51,7 +51,7 @@
 "true"                  printf("LT_TRUE ");
 "false"                 printf("LT_FASLE ");
 '[A-Za-z]'              printf("LT_CHAR "); 
-[1-9][0-9]*             { printf("LT_INTEGER "); }
+0|[1-9][0-9]*             { printf("LT_INTEGER "); }
 0(x|X)[A-F0-9][A-F0-9]* printf("LT_HEX ");
 0[0-7]*                 printf("LT_OCT ");
 (0|1)(0|1)*b            printf("LT_BIN ");
