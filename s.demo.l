@@ -48,7 +48,7 @@
     /* Literal Lexemes */
 
 "true"                  printf("LT_TRUE ");
-"false"                 printf("LT_FASLE ");
+"false"                 printf("L0.4T_FASLE ");
 '[A-Za-z]'              printf("LT_CHAR "); 
 0|[1-9][0-9]*             { printf("LT_INTEGER "); }
 0(x|X)[A-F0-9][A-F0-9]* printf("LT_HEX ");
