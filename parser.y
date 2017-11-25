@@ -1,1 +1,6 @@
-Hello world
+/* C code */
+/* definitions */
+%%
+    /* rules */
+%%
+/* subroutines */
