@@ -45,7 +45,6 @@
 "&"     printf("OP_ADDRESS ");
 "^"     printf("OP_CONTENT ");
 
-
     /* Literal Lexemes */
 
 "true"                  printf("LT_TRUE ");
@@ -56,7 +55,7 @@
 0[0-7]*                 printf("LT_OCT ");
 (0|1)(0|1)*b            printf("LT_BIN ");
 [a-zA-Z][a-zA-Z0-9_]*   { printf("LT_IDEN "); }
-\"[a-zA-Z0-9_\\]*\"     { printf("LT_STRING ");}
+\"[.*^\"]\"   { printf("LT_STRING ");}
 
     /* others */
 
