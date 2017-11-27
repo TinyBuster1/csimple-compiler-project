@@ -60,18 +60,18 @@ OCT         [0-7]
 
     /* Literal Lexemes */
 
-"true"                      return LT_TRUE;
-"false"                     return T_FASLE;
-'.'                         return LT_CHAR; 
-{L}({L}|{D}|_)*               return LT_IDEN;
-\"([^\\\"]|\\.)*\" 	        return STRING_LITERAL;
+"true"             return LT_TRUE;
+"false"            return T_FASLE;
+'.'                return LT_CHAR; 
+{L}({L}|{D}|_)*    return LT_IDEN;
+\"([^\\\"]|\\.)*\" return STRING_LITERAL;
 
     /* ints types */
 
-0{D}+                       return LT_INTEGER;
-0(x|X){H}+                  return LT_HEX;
-0{OCT}*                     return LT_OCT;
-(0|1)(0|1)*b                return LT_BIN;
+0{D}+       return LT_INTEGER;
+0(x|X){H}+  return LT_HEX;
+0{OCT}*     return LT_OCT;
+(0|1)+b     return LT_BIN;
 
     /* others */
 
