@@ -39,7 +39,7 @@ H			[A-F0-9]
     /* OPERATORS */
 "&&"    return OP_AND;
 "/"     return OP_DIVIDE;
-"="     return OP_ASSIGMENT;
+"="      return OP_ASSIGMENT;
 "=="    return OP_EQUAL;
 ">"     return OP_GT;
 ">="    return OP_GTE;
