@@ -31,13 +31,15 @@ int yylex(void);
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
 %%
-s 	: expr {printf("ok\n"); print_tree($1);}
-	| '\n'
+s 	: expr 	{
+				printf("Tree Ok!\n"); 
+				print_tree($1);
+			}
 	;
 
 expr 
-	: expr OP_PLUS expr { $$ = make_node("+",$1,$3);}
-	| LT_INTEGER {$$ = make_node("INT", NULL, NULL);}
+	: expr OP_PLUS expr { $$ = make_node("OP_PLUS",$1,$3);}
+	| LT_INTEGER {$$ = make_node("T", NULL, NULL);}
 	;
 
 %%

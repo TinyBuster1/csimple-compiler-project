@@ -54,16 +54,14 @@ Grammar
     0 $accept: s $end
 
     1 s: expr
-    2  | '\n'
 
-    3 expr: expr OP_PLUS expr
-    4     | LT_INTEGER
+    2 expr: expr OP_PLUS expr
+    3     | LT_INTEGER
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'\n' (10) 2
 error (256)
 T_BOOLEAN (258)
 T_CHAR (259)
@@ -85,7 +83,7 @@ OP_MINUS (274)
 OP_NOT (275)
 OP_NOTEQUAL (276)
 OP_OR (277)
-OP_PLUS (278) 3
+OP_PLUS (278) 2
 OP_MUL (279)
 OP_ADDRESS (280)
 OP_CONTENT (281)
@@ -102,7 +100,7 @@ LT_IDEN (291)
 STRING_LITERAL (292)
 LT_HEX (293)
 LT_OCT (294)
-LT_INTEGER (295) 4
+LT_INTEGER (295) 3
 LT_BIN (296)
 T_SEMICOLON (297)
 T_COLON (298)
@@ -118,12 +116,12 @@ T_L_BRACKET (306)
 
 Nonterminals, with rules where they appear
 
-$accept (53)
+$accept (52)
     on left: 0
-s (54)
-    on left: 1 2, on right: 0
-expr (55)
-    on left: 3 4, on right: 1 3
+s (53)
+    on left: 1, on right: 0
+expr (54)
+    on left: 2 3, on right: 1 2
 
 
 State 0
@@ -131,62 +129,54 @@ State 0
     0 $accept: . s $end
 
     LT_INTEGER  shift, and go to state 1
-    '\n'        shift, and go to state 2
 
-    s     go to state 3
-    expr  go to state 4
+    s     go to state 2
+    expr  go to state 3
 
 
 State 1
 
-    4 expr: LT_INTEGER .
+    3 expr: LT_INTEGER .
 
-    $default  reduce using rule 4 (expr)
+    $default  reduce using rule 3 (expr)
 
 
 State 2
 
-    2 s: '\n' .
+    0 $accept: s . $end
 
-    $default  reduce using rule 2 (s)
+    $end  shift, and go to state 4
 
 
 State 3
 
-    0 $accept: s . $end
-
-    $end  shift, and go to state 5
-
-
-State 4
-
     1 s: expr .
-    3 expr: expr . OP_PLUS expr
+    2 expr: expr . OP_PLUS expr
 
-    OP_PLUS  shift, and go to state 6
+    OP_PLUS  shift, and go to state 5
 
     $default  reduce using rule 1 (s)
 
 
-State 5
+State 4
 
     0 $accept: s $end .
 
     $default  accept
 
 
-State 6
+State 5
 
-    3 expr: expr OP_PLUS . expr
+    2 expr: expr OP_PLUS . expr
 
     LT_INTEGER  shift, and go to state 1
 
-    expr  go to state 7
+    expr  go to state 6
 
 
-State 7
+State 6
 
-    3 expr: expr . OP_PLUS expr
-    3     | expr OP_PLUS expr .
+    2 expr: expr . OP_PLUS expr
+    2     | expr OP_PLUS expr .
 
-    $default  reduce using rule 3 (expr)
+    $default  reduce using rule 2 (expr)

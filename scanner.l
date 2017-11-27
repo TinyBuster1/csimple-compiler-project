@@ -68,7 +68,7 @@ H			[A-F0-9]
 
 0(x|X){H}+    return LT_HEX;
 0[1-7][0-7]*  return LT_OCT;
-0|{D}?        {yylval = atoi(yytext);return LT_INTEGER;}
+0|{D}*        {yylval = atoi(yytext);return LT_INTEGER;}
 1(0|1)+b      return LT_BIN;
 
     /* others */
