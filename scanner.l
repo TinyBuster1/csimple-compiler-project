@@ -8,17 +8,17 @@ OCT         [0-7]
 %option yylineno
 %pointer
 %{
-    #include <stdlib.h>
-    #include <string.h>
-    #include "parser.h"
-
-    void yyerror(const char *);
+    #include <stdio.h>
+    void single_comment();
+    void multi_comment();
 %}
 
 /* definitions */
 %%
     /* tokens */
-    
+
+\/\/.*\\n       { single_comment();  }
+"/*"			{ multi_comment(); }
     /* TYPES */
 "boolean" return T_BOOLEAN;
 "char"    return T_CHAR;
@@ -94,4 +94,27 @@ OCT         [0-7]
 /* subroutines */
 int yywrap(void) {
     return 1;
+}
+
+void single_comment(){
+    char c;
+    while ((c = input()) != '\n' && c != 0) putchar(c);
+}
+
+void multi_comment()
+{
+	char c, c1;
+
+loop:
+	while ((c = input()) != '*' && c != 0)
+		putchar(c);
+
+	if ((c1 = input()) != '/' && c != 0)
+	{
+		unput(c1);
+		goto loop;
+	}
+
+	if (c != 0)
+		putchar(c1);
 }
