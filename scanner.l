@@ -4,19 +4,17 @@ L			[a-zA-Z]
 H			[A-F0-9]
 
 /* C code */
-%option yylineno
-%pointer
 %{
     #include <stdio.h>
-    void single_comment();
-    void multi_comment();
+    #include "y.tab.h"
 %}
 
 /* definitions */
 %%
     /* tokens */
-    /* TODO: COMMENTS not working */
-\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+
+    /* COMMENTS */
+\/\/.*\n$ {}
+\/\*(.|\n)*\*\/ {}
     /* TYPES */
 "boolean" return T_BOOLEAN;
 "char"    return T_CHAR;
@@ -92,27 +90,4 @@ H			[A-F0-9]
 /* subroutines */
 int yywrap(void) {
     return 1;
-}
-
-void single_comment(){
-    char c;
-    while ((c = input()) != '\n' && c != 0) putchar(c);
-}
-
-void multi_comment()
-{
-	char c, c1;
-
-loop:
-	while ((c = input()) != '*' && c != 0)
-		putchar(c);
-
-	if ((c1 = input()) != '/' && c != 0)
-	{
-		unput(c1);
-		goto loop;
-	}
-
-	if (c != 0)
-		putchar(c1);
 }
