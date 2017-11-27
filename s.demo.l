@@ -11,8 +11,8 @@ H			[A-F0-9]
 /* definitions */
 %%
     /* tokens */
-
-\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+ printf(" @@ COMMENTS @@ "); /* COMMENTS */
+\/\/.*\n$     printf("@@ SL_COMMENT @@ ");
+\/\*(.|\n)*\*\/   printf("@@ ML_COMMENT @@ ");
     /* TYPES */
 "boolean" printf("T_BOOLEAN ");
 "char"    printf("T_CHAR ");
