@@ -9,7 +9,7 @@ typedef struct node
 	} node;
 
 node * make_node ( char * token , node * left, node * right);
-void print_tree ( node * tree);
+void print_tree ( node * tree, int);
 void yyerror(char * s);
 int yylex(void);
 #define YYDEBUG 1
@@ -18,7 +18,7 @@ extern int yylineon;
 extern char * yytext;
 %}
 /* Enables verbose error messages */
-%error-verbose
+// %error-verbose
 
 /* TOKENS */
 /* TYPES */
@@ -37,8 +37,26 @@ extern char * yytext;
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
 %%
-START	: { exit(0); }
-		;
+program: 
+	/* empty */	
+	|
+	functions { 
+			printf("Printing AST:\n\n"); 
+			print_tree($1, 0); 
+			exit(0);
+		}
+	;
+
+functions: 
+	functions function
+	;
+
+function: 
+	type LT_IDEN T_OPENPAREN f_params T_CLOSEPAREN T_OPENBRACKET body T_CLOSEBRACKET {
+		make_node("FUNC", $4 ,$7);
+	}
+	;
+type: 
 
 %%
 /* subroutines */
@@ -52,14 +70,38 @@ node * make_node(char * token, node *left, node *right){
 	
 	return newnode;
 }
-void print_tree(node * tree){
-	printf("%s\n",tree->token);
-	if(tree->left){ 
-		print_tree(tree->left);
-	}
-	if(tree->right){ 
-		print_tree(tree->right);
-	}
+
+char * indentor(int dep){
+	char * str = (char *)malloc(sizeof(char)*dep + 1);
+	for(int i = 0; i < dep; i++)
+		str[i] = '\t';
+	str[dep] = '\0';
+}
+ 
+void print_tree(node * tree, int dep){
+	// TODO: NEED TO FINISH BY https://avinashsuryawanshi.files.wordpress.com/2016/10/9.pdf
+	// char * tab = indentor(dep);
+	// printf("%s%s\n",tab, tree->token);
+	// if(tree->left){ 
+	// 	print_tree(tree->left, dep + 1);
+	// }
+	// if(tree->right){
+	// 	print_tree(tree->right, dep + 1);
+	// }
+
+	char * tab = indentor(dep);
+
+	if (tree->left || tree->right)
+ 		printf("%s(",tab);
+	
+	printf("%s\n", tree->token);
+
+	if (tree->left)
+		printtree(tree->left);
+	if (tree->right)
+		printtree(tree->right);
+	if (tree->left || tree->right)
+		printf(")");  
 }
 void yyerror(char * s) {
     fprintf(stderr, "%s\n", s);

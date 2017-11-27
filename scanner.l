@@ -87,7 +87,7 @@ H			[A-F0-9]
 
 [ \t\r\n]               ; /* ignore blank spaces */
 
-.   yyerror(yytext);
+.   yyerror("invalid character");
 %%
 /* subroutines */
 int yywrap(void) {
