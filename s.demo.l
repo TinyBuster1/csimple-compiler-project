@@ -56,7 +56,7 @@ OCT         [0-7]
 "true"                      printf("LT_TRUE ");
 "false"                     printf("T_FASLE ");
 '.'                         printf("LT_CHAR "); 
-{L}({L}|{D})*               printf("LT_IDEN ");
+{L}({L}|{D}|_)*               printf("LT_IDEN ");
 \"([^\\\"]|\\.)*\" 	        printf("STRING_LITERAL ");
 
     /* ints types */

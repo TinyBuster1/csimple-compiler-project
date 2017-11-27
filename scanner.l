@@ -63,7 +63,7 @@ OCT         [0-7]
 "true"                      return LT_TRUE;
 "false"                     return T_FASLE;
 '.'                         return LT_CHAR; 
-{L}({L}|{D})*               return LT_IDEN;
+{L}({L}|{D}|_)*               return LT_IDEN;
 \"([^\\\"]|\\.)*\" 	        return STRING_LITERAL;
 
     /* ints types */
