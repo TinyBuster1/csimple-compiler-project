@@ -2,7 +2,6 @@
 D			[0-9]
 L			[a-zA-Z]
 H			[A-F0-9]
-OCT         [0-7]
 
 /* C code */
 %{
@@ -15,7 +14,7 @@ OCT         [0-7]
 %%
     /* tokens */
 
-\/\/.*\\n       { single_comment();  }
+"//"       { single_comment();  }
 "/*"			{ multi_comment(); }
     /* TYPES */
 "boolean" printf("T_BOOLEAN ");
@@ -65,11 +64,10 @@ OCT         [0-7]
 \"([^\\\"]|\\.)*\" printf("STRING_LITERAL ");
 
     /* ints types */
-
-0{D}+       printf("LT_INTEGER ");
-0(x|X){H}+  printf("LT_HEX ");
-0{OCT}*     printf("LT_OCT ");
-(0|1)+b     printf("LT_BIN ");
+0(x|X){H}+    printf("LT_HEX ");
+0[1-7][0-7]*  printf("LT_OCT ");
+0|{D}?         printf("LT_INTEGER ");
+1(0|1)+b      printf("LT_BIN ");
 
     /* others */
 

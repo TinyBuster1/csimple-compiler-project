@@ -2,7 +2,6 @@
 D			[0-9]
 L			[a-zA-Z]
 H			[A-F0-9]
-OCT         [0-7]
 
 /* C code */
 %option yylineno
@@ -68,10 +67,10 @@ OCT         [0-7]
 
     /* ints types */
 
-0{D}+       return LT_INTEGER;
-0(x|X){H}+  return LT_HEX;
-0{OCT}*     return LT_OCT;
-(0|1)+b     return LT_BIN;
+0(x|X){H}+    return LT_HEX;
+0[1-7][0-7]*  return LT_OCT;
+0|{D}?         return LT_INTEGER;
+1(0|1)+b      return LT_BIN;
 
     /* others */
 
