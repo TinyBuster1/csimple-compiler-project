@@ -7,6 +7,7 @@ H			[A-F0-9]
 %{
     #include <stdio.h>
     #include "y.tab.h"
+ 	void yyerror(char *);
 %}
 
 /* definitions */

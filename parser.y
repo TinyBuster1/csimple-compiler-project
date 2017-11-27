@@ -1,3 +1,9 @@
+%{
+ 	#include <stdio.h>
+ 	int yylex(void);
+ 	void yyerror(char *);
+%}
+
 /* TOKENS */
 /* TYPES */
 %token T_BOOLEAN T_CHAR T_VOID T_INTEGER T_STRING T_P_INT T_P_CHAR T_NULL
@@ -12,9 +18,13 @@
 /* others */
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
-%start s
+%start var_dec
 %%
-s :  ;
+
+var_dec
+	: LT_INTEGER LT_IDEN T_SEMICOLON
+	;
+
 %%
 /* subroutines */
 #include <stdio.h>
@@ -22,9 +32,11 @@ s :  ;
 extern char yytext[];
 extern int column;
 
-yyerror(s)
-char *s;
-{
-	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+void yyerror(char *s) {
+	fprintf(stderr, "%s\n", s);
+}
+
+int main(void) {
+	yyparse();
+	return 0;
 }

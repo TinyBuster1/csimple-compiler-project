@@ -375,8 +375,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 55
-#define YY_END_OF_BUFFER 56
+#define YY_NUM_RULES 54
+#define YY_END_OF_BUFFER 55
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -386,7 +386,7 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[119] =
     {   0,
-       40,   40,   56,   54,   53,   52,   26,   54,   31,   54,
+       40,   40,   55,   53,   52,   52,   26,   53,   31,   53,
        47,   48,   30,   29,   44,   25,   18,   40,   40,   40,
        43,   42,   23,   19,   21,   36,   51,   50,   32,   36,
        36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
@@ -549,13 +549,15 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "s.demo.l"
+#line 1 "scanner.l"
 /* pre-defenictions */
 /* C code */
-#line 8 "s.demo.l"
-    #include <stdlib.h>
+#line 8 "scanner.l"
+    #include <stdio.h>
+    #include "y.tab.h"
+ 	void yyerror(char *);
 /* definitions */
-#line 559 "lex.yy.c"
+#line 561 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -773,10 +775,11 @@ YY_DECL
 		}
 
 	{
-#line 12 "s.demo.l"
+#line 14 "scanner.l"
 
     /* tokens */
-#line 780 "lex.yy.c"
+    /* COMMENTS */
+#line 783 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -840,291 +843,286 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 14 "s.demo.l"
-printf("@@ SL_COMMENT @@ ");
+#line 17 "scanner.l"
+{}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 15 "s.demo.l"
-printf("@@ ML_COMMENT @@ ");
+#line 18 "scanner.l"
+{}
 	YY_BREAK
 /* TYPES */
 case 3:
 YY_RULE_SETUP
-#line 17 "s.demo.l"
-printf("T_BOOLEAN ");
+#line 20 "scanner.l"
+return T_BOOLEAN;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 18 "s.demo.l"
-printf("T_CHAR ");
+#line 21 "scanner.l"
+return T_CHAR;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 19 "s.demo.l"
-printf("T_VOID ");
+#line 22 "scanner.l"
+return T_VOID;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 20 "s.demo.l"
-printf("T_INTEGER ");
+#line 23 "scanner.l"
+return T_INTEGER;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 21 "s.demo.l"
-printf("T_STRING ");
+#line 24 "scanner.l"
+return T_STRING;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 22 "s.demo.l"
-printf("T_P_INT ");
+#line 25 "scanner.l"
+return T_P_INT;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 23 "s.demo.l"
-printf("T_P_CHAR ");
+#line 26 "scanner.l"
+return T_P_CHAR;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 24 "s.demo.l"
-printf("T_NULL ");
+#line 27 "scanner.l"
+return T_NULL;
 	YY_BREAK
 /* CONDITIONS */
 case 11:
 YY_RULE_SETUP
-#line 27 "s.demo.l"
-printf("C_IF ");
+#line 30 "scanner.l"
+return C_IF;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 28 "s.demo.l"
-printf("C_ELSE ");
+#line 31 "scanner.l"
+return C_ELSE;
 	YY_BREAK
 /* LOOPS */
 case 13:
 YY_RULE_SETUP
-#line 30 "s.demo.l"
-printf("L_WHILE ");
+#line 33 "scanner.l"
+return L_WHILE;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 31 "s.demo.l"
-printf("L_DOWHILE ");
+#line 34 "scanner.l"
+return L_DOWHILE;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 32 "s.demo.l"
-printf("L_FOR ");
+#line 35 "scanner.l"
+return L_FOR;
 	YY_BREAK
 /* KEYWORDS */
 case 16:
 YY_RULE_SETUP
-#line 34 "s.demo.l"
-printf("K_RETURN ");
+#line 37 "scanner.l"
+return K_RETURN;
 	YY_BREAK
 /* OPERATORS */
 case 17:
 YY_RULE_SETUP
-#line 37 "s.demo.l"
-printf("OP_AND ");
+#line 40 "scanner.l"
+return OP_AND;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 38 "s.demo.l"
-printf("OP_DIVIDE ");
+#line 41 "scanner.l"
+return OP_DIVIDE;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 39 "s.demo.l"
-printf("OP_ASSIGMENT ");
+#line 42 "scanner.l"
+return OP_ASSIGMENT;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 40 "s.demo.l"
-printf("OP_EQUAL ");
+#line 43 "scanner.l"
+return OP_EQUAL;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 41 "s.demo.l"
-printf("OP_GT ");
+#line 44 "scanner.l"
+return OP_GT;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 42 "s.demo.l"
-printf("OP_GTE ");
+#line 45 "scanner.l"
+return OP_GTE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 43 "s.demo.l"
-printf("OP_LT ");
+#line 46 "scanner.l"
+return OP_LT;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 44 "s.demo.l"
-printf("OP_LTE ");
+#line 47 "scanner.l"
+return OP_LTE;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 45 "s.demo.l"
-printf("OP_MINUS ");
+#line 48 "scanner.l"
+return OP_MINUS;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 46 "s.demo.l"
-printf("OP_NOT ");
+#line 49 "scanner.l"
+return OP_NOT;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 47 "s.demo.l"
-printf("OP_NOTEQUAL ");
+#line 50 "scanner.l"
+return OP_NOTEQUAL;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 48 "s.demo.l"
-printf("OP_OR ");
+#line 51 "scanner.l"
+return OP_OR;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 49 "s.demo.l"
-printf("OP_PLUS ");
+#line 52 "scanner.l"
+return OP_PLUS;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 50 "s.demo.l"
-printf("OP_MUL  ");
+#line 53 "scanner.l"
+return OP_MUL; 
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 51 "s.demo.l"
-printf("OP_ADDRESS ");
+#line 54 "scanner.l"
+return OP_ADDRESS;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 52 "s.demo.l"
-printf("OP_CONTENT ");
+#line 55 "scanner.l"
+return OP_CONTENT;
 	YY_BREAK
 /* Literal Lexemes */
 case 33:
 YY_RULE_SETUP
-#line 57 "s.demo.l"
-printf("LT_TRUE ");
+#line 60 "scanner.l"
+return LT_TRUE;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 58 "s.demo.l"
-printf("T_FASLE ");
+#line 61 "scanner.l"
+return T_FASLE;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 59 "s.demo.l"
-printf("LT_CHAR  ");
+#line 62 "scanner.l"
+return LT_CHAR; 
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 60 "s.demo.l"
-printf("LT_IDEN ");
+#line 63 "scanner.l"
+return LT_IDEN;
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 61 "s.demo.l"
-printf("STRING_LITERAL ");
+#line 64 "scanner.l"
+return STRING_LITERAL;
 	YY_BREAK
 /* ints types */
 case 38:
 YY_RULE_SETUP
-#line 64 "s.demo.l"
-printf("LT_HEX ");
+#line 68 "scanner.l"
+return LT_HEX;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 65 "s.demo.l"
-printf("LT_OCT ");
+#line 69 "scanner.l"
+return LT_OCT;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 66 "s.demo.l"
-printf("LT_INTEGER ");
+#line 70 "scanner.l"
+return LT_INTEGER;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 67 "s.demo.l"
-printf("LT_BIN ");
+#line 71 "scanner.l"
+return LT_BIN;
 	YY_BREAK
 /* others */
 case 42:
 YY_RULE_SETUP
-#line 71 "s.demo.l"
-printf("T_SEMICOLON ");
+#line 75 "scanner.l"
+return T_SEMICOLON; 
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 72 "s.demo.l"
-printf("T_COLON ");
+#line 76 "scanner.l"
+return T_COLON; 
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 73 "s.demo.l"
-printf("T_COMMA ");
+#line 77 "scanner.l"
+return T_COMMA; 
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 74 "s.demo.l"
-printf("T_OPENBRACKET ");
+#line 78 "scanner.l"
+return T_OPENBRACKET; 
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 75 "s.demo.l"
-printf("T_CLOSEBRACKET ");
+#line 79 "scanner.l"
+return T_CLOSEBRACKET; 
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 76 "s.demo.l"
-printf("T_OPENPAREN ");
+#line 80 "scanner.l"
+return T_OPENPAREN; 
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 77 "s.demo.l"
-printf("T_CLOSEPAREN ");
+#line 81 "scanner.l"
+return T_CLOSEPAREN; 
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 78 "s.demo.l"
-printf("T_VERT_BAR ");
+#line 82 "scanner.l"
+return T_VERT_BAR; 
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 79 "s.demo.l"
-printf("T_R_BRACKET ");
+#line 83 "scanner.l"
+return T_R_BRACKET; 
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 80 "s.demo.l"
-printf("T_L_BRACKET ");
+#line 84 "scanner.l"
+return T_L_BRACKET; 
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
-#line 82 "s.demo.l"
-printf("\n");
+#line 87 "scanner.l"
+; /* ignore blank spaces */
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 84 "s.demo.l"
-; /* ignore blank spaces */
+#line 89 "scanner.l"
+yyerror((char *) "invalid character");
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 85 "s.demo.l"
-printf(" ## ERROR ## ");
-	YY_BREAK
-case 55:
-YY_RULE_SETUP
-#line 86 "s.demo.l"
+#line 90 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1128 "lex.yy.c"
+#line 1126 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2125,7 +2123,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 86 "s.demo.l"
+#line 90 "scanner.l"
 
 
 /* subroutines */

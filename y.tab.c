@@ -62,8 +62,13 @@
 
 
 /* Copy the first part of user declarations.  */
+#line 1 "parser.y" /* yacc.c:339  */
 
-#line 67 "y.tab.c" /* yacc.c:339  */
+ 	#include <stdio.h>
+ 	int yylex(void);
+ 	void yyerror(char *);
+
+#line 72 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -213,7 +218,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 217 "y.tab.c" /* yacc.c:358  */
+#line 222 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -453,9 +458,9 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  2
+#define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   0
+#define YYLAST   3
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  52
@@ -464,7 +469,7 @@ union yyalloc
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  2
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  3
+#define YYNSTATES  6
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -515,7 +520,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    17,    17
+       0,    25,    25
 };
 #endif
 
@@ -533,7 +538,7 @@ static const char *const yytname[] =
   "LT_IDEN", "STRING_LITERAL", "LT_HEX", "LT_OCT", "LT_INTEGER", "LT_BIN",
   "T_SEMICOLON", "T_COLON", "T_COMMA", "T_OPENBRACKET", "T_CLOSEBRACKET",
   "T_OPENPAREN", "T_CLOSEPAREN", "T_VERT_BAR", "T_R_BRACKET",
-  "T_L_BRACKET", "$accept", "s", YY_NULLPTR
+  "T_L_BRACKET", "$accept", "var_dec", YY_NULLPTR
 };
 #endif
 
@@ -551,10 +556,10 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -1
+#define YYPACT_NINF -41
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-1)))
+  (!!((Yystate) == (-41)))
 
 #define YYTABLE_NINF -1
 
@@ -565,7 +570,7 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -1,     0,    -1
+     -40,   -35,     2,   -39,   -41,   -41
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -573,19 +578,19 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1
+       0,     0,     0,     0,     1,     2
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -1,    -1
+     -41,   -41
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1
+      -1,     2
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -593,19 +598,19 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       2
+       1,     3,     4,     5
 };
 
 static const yytype_uint8 yycheck[] =
 {
-       0
+      40,    36,     0,    42
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    53,     0
+       0,    40,    53,    36,     0,    42
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
@@ -617,7 +622,7 @@ static const yytype_uint8 yyr1[] =
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0
+       0,     2,     3
 };
 
 
@@ -1294,7 +1299,7 @@ yyreduce:
   switch (yyn)
     {
       
-#line 1298 "y.tab.c" /* yacc.c:1646  */
+#line 1303 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1522,7 +1527,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 18 "parser.y" /* yacc.c:1906  */
+#line 28 "parser.y" /* yacc.c:1906  */
 
 /* subroutines */
 #include <stdio.h>
@@ -1530,9 +1535,11 @@ yyreturn:
 extern char yytext[];
 extern int column;
 
-yyerror(s)
-char *s;
-{
-	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+void yyerror(char *s) {
+	fprintf(stderr, "%s\n", s);
+}
+
+int main(void) {
+	yyparse();
+	return 0;
 }
