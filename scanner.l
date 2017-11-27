@@ -1,3 +1,9 @@
+/* pre-defenictions */
+D			[0-9]
+L			[a-zA-Z]
+H			[A-F0-9]
+OCT         [0-7]
+
 /* C code */
 %option yylineno
 %pointer
@@ -54,16 +60,18 @@
 
     /* Literal Lexemes */
 
-"true"                  return LT_TRUE;
-"false"                 return LT_FASLE;
-'[A-Za-z]'              return LT_CHAR; 
-0(x|X)[A-F0-9][A-F0-9]* return LT_INTEGER_HEX;
-0[0-7]*                 return LT_INTEGER_OCT;
-(0|1)(0|1)*b            return LT_INTEGER_BIN;
+"true"                      return LT_TRUE;
+"false"                     return T_FASLE;
+'.'                         return LT_CHAR; 
+{L}({L}|{D})*               return LT_IDEN;
+\"([^\\\"]|\\.)*\" 	        return STRING_LITERAL;
 
-[0-9][0-9]*             { yylval.base_int = atoi(yytext); return LT_INTEGER_INTEGER; }
-[a-zA-Z][a-zA-Z0-9_]*   { yylval.base_char_ptr = yytext; return LT_IDEN; }
-\"[a-zA-Z0-9_\\]*\"     { yylval.base_char_ptr = yytext; return LT_STRING; }
+    /* ints types */
+
+0{D}+                       return LT_INTEGER;
+0(x|X){H}+                  return LT_HEX;
+0{OCT}*                     return LT_OCT;
+(0|1)(0|1)*b                return LT_BIN;
 
     /* others */
 

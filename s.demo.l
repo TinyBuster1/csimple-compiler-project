@@ -1,3 +1,9 @@
+/* pre-defenictions */
+D			[0-9]
+L			[a-zA-Z]
+H			[A-F0-9]
+OCT         [0-7]
+
 /* C code */
 %{
     #include <stdlib.h>
@@ -25,7 +31,7 @@
 "do"      printf("L_DOWHILE ");
 "for"     printf("L_FOR ");
     /* KEYWORDS */
-"return" printf("K_return ");
+"return" printf("K_RETURN ");
 
     /* OPERATORS */
 "&&"    printf("OP_AND");
@@ -47,15 +53,18 @@
 
     /* Literal Lexemes */
 
-"true"                  printf("LT_TRUE ");
-"false"                 printf("L0.4T_FASLE ");
-'[A-Za-z]'              printf("LT_CHAR "); 
-0|[1-9][0-9]*             { printf("LT_INTEGER "); }
-0(x|X)[A-F0-9][A-F0-9]* printf("LT_HEX ");
-0[0-7]*                 printf("LT_OCT ");
-(0|1)(0|1)*b            printf("LT_BIN ");
-[a-zA-Z][a-zA-Z0-9_]*   { printf("LT_IDEN "); }
-\"[.*^\"]\"   { printf("LT_STRING ");}
+"true"                      printf("LT_TRUE ");
+"false"                     printf("T_FASLE ");
+'.'                         printf("LT_CHAR "); 
+{L}({L}|{D})*               printf("LT_IDEN ");
+\"([^\\\"]|\\.)*\" 	        printf("STRING_LITERAL ");
+
+    /* ints types */
+
+0{D}+                       printf("LT_INTEGER ");
+0(x|X){H}+                  printf("LT_HEX ");
+0{OCT}*                     printf("LT_OCT ");
+(0|1)(0|1)*b                printf("LT_BIN ");
 
     /* others */
 
@@ -70,10 +79,11 @@
 "]" printf("T_R_BRACKET "); 
 "[" printf("T_L_BRACKET "); 
 
+    /* TODO: move back into [ \t\v\f] */
+"\n"                printf("\n"); 
 
-"\n"                printf("\n\n"); 
+[ \t\v\f]               /* ignore blank spaces */
 
-[ \t\r]               /* ignore blank spaces */
-.  printf("ERROR!");
+.  printf(" ## ERROR ## ");
 %%
 /* subroutines */
