@@ -72,9 +72,12 @@ typedef struct node
 	  struct node *left;
 	  struct node *right;
 	} node;
-node *mknode ( char *token , node *left, node *right);
-void printtree ( node *tree);
+node *make_node ( char *token , node *left, node *right);
+void print_tree ( node *tree);
 #define YYSTYPE struct node *
+
+void yyerror(char *);
+int yylex(void);
 
 
 
@@ -95,7 +98,10 @@ void printtree ( node *tree);
 # define YYERROR_VERBOSE 0
 #endif
 
-
+/* In a future release of Bison, this section will be replaced
+   by #include "y.tab.h".  */
+#ifndef YY_YY_Y_TAB_H_INCLUDED
+# define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -223,7 +229,7 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-
+#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
@@ -469,14 +475,14 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   4
+#define YYLAST   12
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  52
+#define YYNTOKENS  53
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  3
+#define YYNRULES  5
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  8
 
@@ -493,7 +499,7 @@ union yyalloc
 static const yytype_uint8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      52,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -529,7 +535,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    31,    31,    34
+       0,    34,    34,    35,    39,    40
 };
 #endif
 
@@ -547,7 +553,7 @@ static const char *const yytname[] =
   "LT_IDEN", "STRING_LITERAL", "LT_HEX", "LT_OCT", "LT_INTEGER", "LT_BIN",
   "T_SEMICOLON", "T_COLON", "T_COMMA", "T_OPENBRACKET", "T_CLOSEBRACKET",
   "T_OPENPAREN", "T_CLOSEPAREN", "T_VERT_BAR", "T_R_BRACKET",
-  "T_L_BRACKET", "$accept", "s", "program", YY_NULLPTR
+  "T_L_BRACKET", "'\\n'", "$accept", "s", "expr", YY_NULLPTR
 };
 #endif
 
@@ -561,14 +567,14 @@ static const yytype_uint16 yytoknum[] =
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
-     305,   306
+     305,   306,    10
 };
 # endif
 
-#define YYPACT_NINF -39
+#define YYPACT_NINF -41
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-39)))
+  (!!((Yystate) == (-41)))
 
 #define YYTABLE_NINF -1
 
@@ -579,7 +585,7 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -36,   -12,     2,   -39,   -37,   -39,   -38,   -39
+     -40,   -41,   -41,     1,   -21,   -41,   -37,   -41
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -587,19 +593,19 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,     2,     0,     1,     0,     3
+       0,     5,     3,     0,     2,     1,     0,     4
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -39,   -39,   -39
+     -41,   -41,    -2
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     3
+      -1,     3,     4
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -607,31 +613,33 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       1,     4,     5,     6,     7
+       1,     5,     6,     1,     7,     0,     0,     0,     0,     0,
+       0,     0,     2
 };
 
-static const yytype_uint8 yycheck[] =
+static const yytype_int8 yycheck[] =
 {
-      36,    13,     0,    40,    42
+      40,     0,    23,    40,     6,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    52
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    36,    53,    54,    13,     0,    40,    42
+       0,    40,    52,    54,    55,     0,    23,    55
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    52,    53,    54
+       0,    53,    54,    54,    55,    55
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     4
+       0,     2,     1,     1,     3,     1
 };
 
 
@@ -1309,13 +1317,19 @@ yyreduce:
     {
         case 2:
 
-    {printf("ok\n"); printtree((yyvsp[0]));}
+    {printf("ok\n"); print_tree((yyvsp[0]));}
 
     break;
 
-  case 3:
+  case 4:
 
-    { (yyval) = printtree((yyvsp[-2]), (yyvsp[-3]),(yyvsp[-1]));}
+    { (yyval) = make_node("+",(yyvsp[-2]),(yyvsp[0]));}
+
+    break;
+
+  case 5:
+
+    {(yyval) = make_node("INT", NULL, NULL);}
 
     break;
 
@@ -1551,10 +1565,7 @@ yyreturn:
 
 
 /* subroutines */
-int main(){
-	return yyparse();
-}
-node * mknode(char * token, node *left, node *right){
+node * make_node(char * token, node *left, node *right){
 	node * newnode 	= (node*) malloc (sizeof(node));
 	char * newstr 	= (char*) malloc (sizeof(token)+1);
 	strcpy (newstr,token);
@@ -1564,17 +1575,19 @@ node * mknode(char * token, node *left, node *right){
 	
 	return newnode;
 }
-void printtree(node * tree){
+void print_tree(node * tree){
 	printf("%s\n",tree->token);
 	if(tree->left){ 
-		printtree(tree->left);
+		print_tree(tree->left);
 	}
 	if(tree->right){ 
-		printtree(tree->right);
+		print_tree(tree->right);
 	}
 }
-int yyerror()
-{
-	printf("ERROR! /* TODO MAKE ERROR HANDLING BETTER */");
-	return 0;
+void yyerror(char *s) {
+    fprintf(stderr, "%s\n", s);
+}
+
+int main(void) {
+    yyparse();
 }

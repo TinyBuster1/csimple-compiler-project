@@ -10,6 +10,7 @@ Terminals unused in grammar
    T_NULL
    OP_AND
    OP_DIVIDE
+   OP_ASSIGMENT
    OP_EQUAL
    OP_GT
    OP_GTE
@@ -19,7 +20,6 @@ Terminals unused in grammar
    OP_NOT
    OP_NOTEQUAL
    OP_OR
-   OP_PLUS
    OP_MUL
    OP_ADDRESS
    OP_CONTENT
@@ -32,10 +32,12 @@ Terminals unused in grammar
    LT_TRUE
    T_FASLE
    LT_CHAR
+   LT_IDEN
    STRING_LITERAL
    LT_HEX
    LT_OCT
    LT_BIN
+   T_SEMICOLON
    T_COLON
    T_COMMA
    T_OPENBRACKET
@@ -51,14 +53,17 @@ Grammar
 
     0 $accept: s $end
 
-    1 s: program
+    1 s: expr
+    2  | '\n'
 
-    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON
+    3 expr: expr OP_PLUS expr
+    4     | LT_INTEGER
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
+'\n' (10) 2
 error (256)
 T_BOOLEAN (258)
 T_CHAR (259)
@@ -70,7 +75,7 @@ T_P_CHAR (264)
 T_NULL (265)
 OP_AND (266)
 OP_DIVIDE (267)
-OP_ASSIGMENT (268) 2
+OP_ASSIGMENT (268)
 OP_EQUAL (269)
 OP_GT (270)
 OP_GTE (271)
@@ -80,7 +85,7 @@ OP_MINUS (274)
 OP_NOT (275)
 OP_NOTEQUAL (276)
 OP_OR (277)
-OP_PLUS (278)
+OP_PLUS (278) 3
 OP_MUL (279)
 OP_ADDRESS (280)
 OP_CONTENT (281)
@@ -93,13 +98,13 @@ K_RETURN (287)
 LT_TRUE (288)
 T_FASLE (289)
 LT_CHAR (290)
-LT_IDEN (291) 2
+LT_IDEN (291)
 STRING_LITERAL (292)
 LT_HEX (293)
 LT_OCT (294)
-LT_INTEGER (295) 2
+LT_INTEGER (295) 4
 LT_BIN (296)
-T_SEMICOLON (297) 2
+T_SEMICOLON (297)
 T_COLON (298)
 T_COMMA (299)
 T_OPENBRACKET (300)
@@ -113,50 +118,54 @@ T_L_BRACKET (306)
 
 Nonterminals, with rules where they appear
 
-$accept (52)
+$accept (53)
     on left: 0
-s (53)
-    on left: 1, on right: 0
-program (54)
-    on left: 2, on right: 1
+s (54)
+    on left: 1 2, on right: 0
+expr (55)
+    on left: 3 4, on right: 1 3
 
 
 State 0
 
     0 $accept: . s $end
 
-    LT_IDEN  shift, and go to state 1
+    LT_INTEGER  shift, and go to state 1
+    '\n'        shift, and go to state 2
 
-    s        go to state 2
-    program  go to state 3
+    s     go to state 3
+    expr  go to state 4
 
 
 State 1
 
-    2 program: LT_IDEN . OP_ASSIGMENT LT_INTEGER T_SEMICOLON
+    4 expr: LT_INTEGER .
 
-    OP_ASSIGMENT  shift, and go to state 4
+    $default  reduce using rule 4 (expr)
 
 
 State 2
+
+    2 s: '\n' .
+
+    $default  reduce using rule 2 (s)
+
+
+State 3
 
     0 $accept: s . $end
 
     $end  shift, and go to state 5
 
 
-State 3
-
-    1 s: program .
-
-    $default  reduce using rule 1 (s)
-
-
 State 4
 
-    2 program: LT_IDEN OP_ASSIGMENT . LT_INTEGER T_SEMICOLON
+    1 s: expr .
+    3 expr: expr . OP_PLUS expr
 
-    LT_INTEGER  shift, and go to state 6
+    OP_PLUS  shift, and go to state 6
+
+    $default  reduce using rule 1 (s)
 
 
 State 5
@@ -168,13 +177,16 @@ State 5
 
 State 6
 
-    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER . T_SEMICOLON
+    3 expr: expr OP_PLUS . expr
 
-    T_SEMICOLON  shift, and go to state 7
+    LT_INTEGER  shift, and go to state 1
+
+    expr  go to state 7
 
 
 State 7
 
-    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON .
+    3 expr: expr . OP_PLUS expr
+    3     | expr OP_PLUS expr .
 
-    $default  reduce using rule 2 (program)
+    $default  reduce using rule 3 (expr)

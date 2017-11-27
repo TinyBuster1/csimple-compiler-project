@@ -7,9 +7,12 @@ typedef struct node
 	  struct node *left;
 	  struct node *right;
 	} node;
-node *mknode ( char *token , node *left, node *right);
-void printtree ( node *tree);
+node *make_node ( char *token , node *left, node *right);
+void print_tree ( node *tree);
 #define YYSTYPE struct node *
+
+void yyerror(char *);
+int yylex(void);
 
 %}
 
@@ -17,7 +20,7 @@ void printtree ( node *tree);
 /* TYPES */
 %token T_BOOLEAN T_CHAR T_VOID T_INTEGER T_STRING T_P_INT T_P_CHAR T_NULL
 /* OPERATORS */
-%token OP_AND OP_DIVIDE OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE OP_MINUS OP_NOT OP_NOTEQUAL OP_OR OP_PLUS OP_MUL OP_ADDRESS OP_CONTENT
+%left OP_AND OP_DIVIDE OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE OP_MINUS OP_NOT OP_NOTEQUAL OP_OR OP_PLUS OP_MUL OP_ADDRESS OP_CONTENT
 /* CONDITIONS */
 %token C_IF C_ELSE L_WHILE L_DOWHILE L_FOR K_RETURN
 /* globals */
@@ -28,18 +31,18 @@ void printtree ( node *tree);
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
 %%
-s: program {printf("ok\n"); printtree($1);}
+s 	: expr {printf("ok\n"); print_tree($1);}
+	| '\n'
+	;
 
-program
-	: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON { $$ = printtree($2, $1,$3);}
+expr 
+	: expr OP_PLUS expr { $$ = make_node("+",$1,$3);}
+	| LT_INTEGER {$$ = make_node("INT", NULL, NULL);}
 	;
 
 %%
 /* subroutines */
-int main(){
-	return yyparse();
-}
-node * mknode(char * token, node *left, node *right){
+node * make_node(char * token, node *left, node *right){
 	node * newnode 	= (node*) malloc (sizeof(node));
 	char * newstr 	= (char*) malloc (sizeof(token)+1);
 	strcpy (newstr,token);
@@ -49,17 +52,19 @@ node * mknode(char * token, node *left, node *right){
 	
 	return newnode;
 }
-void printtree(node * tree){
+void print_tree(node * tree){
 	printf("%s\n",tree->token);
 	if(tree->left){ 
-		printtree(tree->left);
+		print_tree(tree->left);
 	}
 	if(tree->right){ 
-		printtree(tree->right);
+		print_tree(tree->right);
 	}
 }
-int yyerror()
-{
-	printf("ERROR! /* TODO MAKE ERROR HANDLING BETTER */");
-	return 0;
+void yyerror(char *s) {
+    fprintf(stderr, "%s\n", s);
+}
+
+int main(void) {
+    yyparse();
 }
