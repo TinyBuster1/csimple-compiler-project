@@ -3,24 +3,30 @@
 #include <string.h>
 #include <stdlib.h>
 typedef struct node
-	{ char *token;
-	  struct node *left;
-	  struct node *right;
+	{ char * token;
+	  struct node * left;
+	  struct node * right;
 	} node;
-node *make_node ( char *token , node *left, node *right);
-void print_tree ( node *tree);
-#define YYSTYPE struct node *
 
-void yyerror(char *);
+node * make_node ( char * token , node * left, node * right);
+void print_tree ( node * tree);
+void yyerror(char * s);
 int yylex(void);
-
+#define YYDEBUG 1
+#define YYSTYPE struct node *
+extern int yylineon;
+extern char * yytext;
 %}
+/* Enables verbose error messages */
+%error-verbose
 
 /* TOKENS */
 /* TYPES */
 %token T_BOOLEAN T_CHAR T_VOID T_INTEGER T_STRING T_P_INT T_P_CHAR T_NULL
 /* OPERATORS */
-%left OP_AND OP_DIVIDE OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE OP_MINUS OP_NOT OP_NOTEQUAL OP_OR OP_PLUS OP_MUL OP_ADDRESS OP_CONTENT
+%left OP_MINUS OP_PLUS 
+%left OP_MUL OP_DIVIDE
+%left OP_AND OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE OP_NOT OP_NOTEQUAL OP_OR OP_ADDRESS OP_CONTENT
 /* CONDITIONS */
 %token C_IF C_ELSE L_WHILE L_DOWHILE L_FOR K_RETURN
 /* globals */
@@ -31,16 +37,8 @@ int yylex(void);
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
 %%
-s 	: expr 	{
-				printf("Tree Ok!\n"); 
-				print_tree($1);
-			}
-	;
-
-expr 
-	: expr OP_PLUS expr { $$ = make_node("OP_PLUS",$1,$3);}
-	| LT_INTEGER {$$ = make_node("T", NULL, NULL);}
-	;
+START	: { exit(0); }
+		;
 
 %%
 /* subroutines */
@@ -63,7 +61,7 @@ void print_tree(node * tree){
 		print_tree(tree->right);
 	}
 }
-void yyerror(char *s) {
+void yyerror(char * s) {
     fprintf(stderr, "%s\n", s);
 }
 
