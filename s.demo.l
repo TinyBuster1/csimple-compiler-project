@@ -6,16 +6,13 @@ H			[A-F0-9]
 /* C code */
 %{
     #include <stdlib.h>
-    void single_comment();
-    void multi_comment();
 %}
 
 /* definitions */
 %%
     /* tokens */
 
-"//"       { single_comment();  }
-"/*"			{ multi_comment(); }
+"/*"([^*]|\*+[^*/])*\*+"/" /* COMMENTS */
     /* TYPES */
 "boolean" printf("T_BOOLEAN ");
 "char"    printf("T_CHAR ");
@@ -66,7 +63,7 @@ H			[A-F0-9]
     /* ints types */
 0(x|X){H}+    printf("LT_HEX ");
 0[1-7][0-7]*  printf("LT_OCT ");
-0|{D}?         printf("LT_INTEGER ");
+0|{D}?        printf("LT_INTEGER ");
 1(0|1)+b      printf("LT_BIN ");
 
     /* others */
@@ -90,27 +87,4 @@ H			[A-F0-9]
 /* subroutines */
 int yywrap(void) {
     return 1;
-}
-
-void single_comment(){
-    char c;
-    while ((c = input()) != '\n' && c != 0) putchar(c);
-}
-
-void multi_comment()
-{
-	char c, c1;
-
-loop:
-	while ((c = input()) != '*' && c != 0)
-		putchar(c);
-
-	if ((c1 = input()) != '/' && c != 0)
-	{
-		unput(c1);
-		goto loop;
-	}
-
-	if (c != 0)
-		putchar(c1);
 }
