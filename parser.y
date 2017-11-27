@@ -37,26 +37,8 @@ extern char * yytext;
 %token T_SEMICOLON T_COLON T_COMMA T_OPENBRACKET T_CLOSEBRACKET T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* definitions */
 %%
-program: 
-	/* empty */	
-	|
-	functions { 
-			printf("Printing AST:\n\n"); 
-			print_tree($1, 0); 
-			exit(0);
-		}
-	;
 
-functions: 
-	functions function
-	;
-
-function: 
-	type LT_IDEN T_OPENPAREN f_params T_CLOSEPAREN T_OPENBRACKET body T_CLOSEBRACKET {
-		make_node("FUNC", $4 ,$7);
-	}
-	;
-type: 
+TODO
 
 %%
 /* subroutines */
