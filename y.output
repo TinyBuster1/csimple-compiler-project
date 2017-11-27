@@ -1,0 +1,180 @@
+Terminals unused in grammar
+
+   T_BOOLEAN
+   T_CHAR
+   T_VOID
+   T_INTEGER
+   T_STRING
+   T_P_INT
+   T_P_CHAR
+   T_NULL
+   OP_AND
+   OP_DIVIDE
+   OP_EQUAL
+   OP_GT
+   OP_GTE
+   OP_LT
+   OP_LTE
+   OP_MINUS
+   OP_NOT
+   OP_NOTEQUAL
+   OP_OR
+   OP_PLUS
+   OP_MUL
+   OP_ADDRESS
+   OP_CONTENT
+   C_IF
+   C_ELSE
+   L_WHILE
+   L_DOWHILE
+   L_FOR
+   K_RETURN
+   LT_TRUE
+   T_FASLE
+   LT_CHAR
+   STRING_LITERAL
+   LT_HEX
+   LT_OCT
+   LT_BIN
+   T_COLON
+   T_COMMA
+   T_OPENBRACKET
+   T_CLOSEBRACKET
+   T_OPENPAREN
+   T_CLOSEPAREN
+   T_VERT_BAR
+   T_R_BRACKET
+   T_L_BRACKET
+
+
+Grammar
+
+    0 $accept: s $end
+
+    1 s: program
+
+    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+T_BOOLEAN (258)
+T_CHAR (259)
+T_VOID (260)
+T_INTEGER (261)
+T_STRING (262)
+T_P_INT (263)
+T_P_CHAR (264)
+T_NULL (265)
+OP_AND (266)
+OP_DIVIDE (267)
+OP_ASSIGMENT (268) 2
+OP_EQUAL (269)
+OP_GT (270)
+OP_GTE (271)
+OP_LT (272)
+OP_LTE (273)
+OP_MINUS (274)
+OP_NOT (275)
+OP_NOTEQUAL (276)
+OP_OR (277)
+OP_PLUS (278)
+OP_MUL (279)
+OP_ADDRESS (280)
+OP_CONTENT (281)
+C_IF (282)
+C_ELSE (283)
+L_WHILE (284)
+L_DOWHILE (285)
+L_FOR (286)
+K_RETURN (287)
+LT_TRUE (288)
+T_FASLE (289)
+LT_CHAR (290)
+LT_IDEN (291) 2
+STRING_LITERAL (292)
+LT_HEX (293)
+LT_OCT (294)
+LT_INTEGER (295) 2
+LT_BIN (296)
+T_SEMICOLON (297) 2
+T_COLON (298)
+T_COMMA (299)
+T_OPENBRACKET (300)
+T_CLOSEBRACKET (301)
+T_OPENPAREN (302)
+T_CLOSEPAREN (303)
+T_VERT_BAR (304)
+T_R_BRACKET (305)
+T_L_BRACKET (306)
+
+
+Nonterminals, with rules where they appear
+
+$accept (52)
+    on left: 0
+s (53)
+    on left: 1, on right: 0
+program (54)
+    on left: 2, on right: 1
+
+
+State 0
+
+    0 $accept: . s $end
+
+    LT_IDEN  shift, and go to state 1
+
+    s        go to state 2
+    program  go to state 3
+
+
+State 1
+
+    2 program: LT_IDEN . OP_ASSIGMENT LT_INTEGER T_SEMICOLON
+
+    OP_ASSIGMENT  shift, and go to state 4
+
+
+State 2
+
+    0 $accept: s . $end
+
+    $end  shift, and go to state 5
+
+
+State 3
+
+    1 s: program .
+
+    $default  reduce using rule 1 (s)
+
+
+State 4
+
+    2 program: LT_IDEN OP_ASSIGMENT . LT_INTEGER T_SEMICOLON
+
+    LT_INTEGER  shift, and go to state 6
+
+
+State 5
+
+    0 $accept: s $end .
+
+    $default  accept
+
+
+State 6
+
+    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER . T_SEMICOLON
+
+    T_SEMICOLON  shift, and go to state 7
+
+
+State 7
+
+    2 program: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON .
+
+    $default  reduce using rule 2 (program)

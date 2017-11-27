@@ -1315,7 +1315,7 @@ yyreduce:
 
   case 3:
 
-    { (yyval) = mknode((yyvsp[-2]), (yyvsp[-3]),(yyvsp[-1]));}
+    { (yyval) = printtree((yyvsp[-2]), (yyvsp[-3]),(yyvsp[-1]));}
 
     break;
 
@@ -1564,7 +1564,7 @@ node * mknode(char * token, node *left, node *right){
 	
 	return newnode;
 }
-void printtree(node *tree){
+void printtree(node * tree){
 	printf("%s\n",tree->token);
 	if(tree->left){ 
 		printtree(tree->left);

@@ -31,7 +31,7 @@ void printtree ( node *tree);
 s: program {printf("ok\n"); printtree($1);}
 
 program
-	: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON { $$ = mknode($2, $1,$3);}
+	: LT_IDEN OP_ASSIGMENT LT_INTEGER T_SEMICOLON { $$ = printtree($2, $1,$3);}
 	;
 
 %%
@@ -49,7 +49,7 @@ node * mknode(char * token, node *left, node *right){
 	
 	return newnode;
 }
-void printtree(node *tree){
+void printtree(node * tree){
 	printf("%s\n",tree->token);
 	if(tree->left){ 
 		printtree(tree->left);
