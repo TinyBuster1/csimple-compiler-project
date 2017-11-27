@@ -12,7 +12,7 @@ H			[A-F0-9]
 %%
     /* tokens */
 
-"/*"([^*]|\*+[^*/])*\*+"/" /* COMMENTS */
+\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+ printf(" @@ COMMENTS @@ "); /* COMMENTS */
     /* TYPES */
 "boolean" printf("T_BOOLEAN ");
 "char"    printf("T_CHAR ");

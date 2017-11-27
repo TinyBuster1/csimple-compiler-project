@@ -10,8 +10,9 @@ int foo(int i, char j, string k)
         temp = t * t;
         return temp;
     }
-    int total; /* variable declarations */
+    int total;
+    /* variable declarations
     k = 5;
     total = i + square(k);
-    return total - 10; /* statements */
+    return total - 10; /* statements 
 }

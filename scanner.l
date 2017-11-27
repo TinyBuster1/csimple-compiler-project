@@ -15,9 +15,8 @@ H			[A-F0-9]
 /* definitions */
 %%
     /* tokens */
-
-\/\/.*\\n       { single_comment();  }
-"/*"			{ multi_comment(); }
+    /* TODO: COMMENTS not working */
+\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+
     /* TYPES */
 "boolean" return T_BOOLEAN;
 "char"    return T_CHAR;
