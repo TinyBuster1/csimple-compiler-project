@@ -60,6 +60,6 @@ void printtree(node *tree){
 }
 int yyerror()
 {
-	printf("jj");
+	printf("ERROR! /* TODO MAKE ERROR HANDLING BETTER */");
 	return 0;
 }
