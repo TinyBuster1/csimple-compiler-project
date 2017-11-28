@@ -1,10 +1,7 @@
-if (x > y)
+int main()
 {
-    x = x + f;
+    int x;
+    boolean y;
 }
-else
-{
-    y = x + y + z;
-    x = z + (c + n) * 2;
-    z = f;
-}
+boolean func1(int x, int y) {}
+boolean func1(int x int y) {}

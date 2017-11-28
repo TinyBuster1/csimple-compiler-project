@@ -1,14 +1,14 @@
-/* pre-defenictions */
-D			[0-9]
-L			[a-zA-Z]
-H			[A-F0-9]
-
+/* pre defs */
+L   [a-zA-Z]
+D   [0-9]
 /* C code */
 %{
     #include <stdio.h>
+    #include <stdlib.h>
     #include "y.tab.h"
  	void yyerror(char *);
-    extern int yylval;
+    extern int yyval, yylineno;
+    int getIntValue(char* text, int type);
 %}
 
 /* definitions */
@@ -55,29 +55,25 @@ H			[A-F0-9]
 "&"     return OP_ADDRESS;
 "^"     return OP_CONTENT;
 
-
     /* Literal Lexemes */
 
 "true"             return LT_TRUE;
 "false"            return T_FASLE;
 '.'                return LT_CHAR; 
-{L}({L}|{D}|_)*    return LT_IDEN;
+{L}({L}|{D}|_)*    return IDEN;
 \"([^\\\"]|\\.)*\" return STRING_LITERAL;
 
     /* ints types */
 
-0(x|X){H}+    return LT_HEX;
-0[1-7][0-7]*  return LT_OCT;
-0|{D}*        {yylval = atoi(yytext);return LT_INTEGER;}
-1(0|1)+b      return LT_BIN;
+(0|[1-9][0-9]*|0[xX][0-9a-fA-F]+|0[0-7]+|[01]+b)  { yylval.string = strdup(yytext); return LT_INTEGER; }
 
     /* others */
 
 ";" return T_SEMICOLON; 
 ":" return T_COLON; 
 "," return T_COMMA; 
-"{" return T_OPENBRACKET; 
-"}" return T_CLOSEBRACKET; 
+"{" return CURL_O; 
+"}" return CURL_R; 
 "(" return T_OPENPAREN; 
 ")" return T_CLOSEPAREN; 
 "|" return T_VERT_BAR; 
@@ -85,11 +81,24 @@ H			[A-F0-9]
 "[" return T_L_BRACKET; 
 
 
-[ \t\r\n]               ; /* ignore blank spaces */
-
+[ \t\r]               ; /* ignore blank spaces */
+[\n] 			         { yylineno = yylineno + 1; }
 .   yyerror("invalid character");
 %%
 /* subroutines */
 int yywrap(void) {
     return 1;
 }
+
+int getIntValue(char* text, int type) {
+	if(strlen(text) > 10) {
+		yyerror("integer too long");
+		exit(0);
+	}
+	int value = (int) strtol(yytext, 0, type);
+	return value;
+}
+
+/* TODO: add logical expr */
+/* TODO: add unary expr */
+/* TODO: not sure about yacc nubers handling */
