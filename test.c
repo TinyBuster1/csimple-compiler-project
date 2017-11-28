@@ -1,7 +1,11 @@
-int main()
-{
-    int x;
-    boolean y;
+int main(){
+    if(x<5 && y>10){
+
+    }else{
+        if(x<0 || check(0)==true){
+            int x,yz;
+            return x;
+        }
+    }
+    return 0;
 }
-boolean func1(int x, int y) {}
-boolean func1(int x int y) {}

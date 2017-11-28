@@ -30,38 +30,78 @@
 %left OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE
 %token OP_AND OP_NOT OP_NOTEQUAL OP_OR
 /* CONDITIONS */
-%token C_IF C_ELSE L_WHILE L_DOWHILE L_FOR K_RETURN
+%token <string> C_IF C_ELSE L_WHILE L_DOWHILE L_FOR K_RETURN
 /* globals */
-%token LT_TRUE T_FASLE LT_CHAR IDEN STRING_LITERAL LT_INTEGER 
+%token <string> LT_TRUE T_FASLE LT_CHAR IDEN STRING_LITERAL LT_INTEGER 
 /* others */
-%token T_SEMICOLON T_COLON T_COMMA CURL_O CURL_R T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
+%token <string> T_SEMICOLON T_COLON T_COMMA CURL_O CURL_R T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
 /* types */
 /* definitions */
 %%
 
 s: functions;
 
-functions: 	functions function
-           	| function 
+functions: 	function_d functions 
+           	| function_d
            	;
 
-function: 	func_sign T_OPENPAREN params T_CLOSEPAREN CURL_O body CURL_R
-			;
+function_d: param T_OPENPAREN params T_CLOSEPAREN CURL_O body CURL_R;
 
+function_u: IDEN T_OPENPAREN params T_CLOSEPAREN;
 
-body: params;
+body: params
+	  |if_statment
+	  |body return_statment
+	  ; 
 
-type: T_BOOLEAN | T_INTEGER
-	;
+type: T_BOOLEAN | T_INTEGER | T_P_CHAR | T_P_INT;
 
-params: params T_COMMA param T_SEMICOLON
-		| param T_SEMICOLON
-		|
+params: param T_SEMICOLON
+		|param T_COMMA params T_SEMICOLON
+		|expre
+		| 
 		;
 
 param: type IDEN;
 
-func_sign: type IDEN;
+if_statment: C_IF T_OPENPAREN mul_logic_expre T_CLOSEPAREN CURL_O body CURL_R
+			 |C_IF T_OPENPAREN mul_logic_expre T_CLOSEPAREN CURL_O body CURL_R C_ELSE CURL_O body CURL_R
+			 ;
+
+logic_expre: expre logic_opr expre
+			 |LT_TRUE
+			 |T_FASLE
+			 |function_u
+			 ;
+
+mul_logic_expre: logic_expre OP_AND mul_logic_expre
+				 |logic_expre OP_OR mul_logic_expre
+				 |logic_expre
+			 	 ;
+			 
+expre: IDEN
+	   |LT_INTEGER
+	   |LT_CHAR
+	   |LT_TRUE
+	   |T_FASLE
+	   |T_STRING
+	   |expre OP_PLUS expre
+	   |expre OP_MINUS expre
+	   |expre OP_MUL expre
+	   |expre OP_DIVIDE expre
+	   |function_u
+	   ;
+
+
+return_statment: K_RETURN expre T_SEMICOLON;
+
+logic_opr: OP_EQUAL
+           | OP_GT
+		   | OP_GTE
+		   | OP_LT 
+		   | OP_LTE
+		   | OP_NOTEQUAL
+		   ;
 %%
 /* subroutines */
 int yyerror(const char *msg)
