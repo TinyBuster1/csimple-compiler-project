@@ -45,60 +45,77 @@
 /* definitions */
 %%
 
-s: 	functions {printer("s",1);}
-	|
-	STRING_LITERAL {printer("s",2);}
-	;
+s: 	functions {printer("s",1);};
 
 functions: functions function_d {printer("functions",1);}
 		   |function_d {printer("functions",2);}
 		   ;
 
-function_d: funtype IDEN O_PAREN params_list C_PAREN O_CURL param_d body C_CURL;
+function_d: types IDEN O_PAREN params_list  C_PAREN O_CURL mul_body C_CURL;
 
-params_list: param | params_list COMMA param;
 
-param: param_type IDEN
-	   |IDEN
+
+params_list:params_list COMMA params
+			  |params
+			  |
+			  ;
+
+params:types IDEN;
+
+types: INT
+       |BOOLEAN
+	   |CHAR
+	   |STRING
+       |PCHAR
+	   |PINT
+	   |VOID
 	   ;
-
-funtype:VOID
-	    |BOOLEAN
-	    |CHAR
-		|INT
-		|PCHAR
-		|PINT
-		;
-
-param_type:INT
-           |BOOLEAN
-		   |CHAR
-		   |STRING
-		   |PCHAR
-		   |PINT
-		   ;
-
 
 return: RETURN expre SEMICOLON;
 
-expre:BOOL_TRUE
-	  |BOOL_FALSE
-	  |INTEGER
-	  |CHAR_LITERAL
-	  |STRING_LITERAL
-	  |PCHAR
-	  |PINT
-	  |IDEN
+expre:IDEN
+	  |bool_types
+	  |pointers
+	  |literals
+	  |function_u
+	  |expre PLUS expre
+	  |expre MINUS expre
+	  |expre MUL expre
+	  |expre DIVIDE expre
+	  |expre EQUAL expre
+	  |expre GT expre
+	  |expre GTE expre
+	  |expre LT expre
+	  |expre LTE expre
+	  |expre NOTEQUAL expre
+	  |expre ASSIGMENT expre
+	  |expre AND expre
+	  |expre OR expre
+
+	  
 	  ;
-		
+
+pointers:PCHAR|PINT;
+
+bool_types:BOOL_FALSE|BOOL_TRUE;
+
+literals: INTEGER
+	  	  |CHAR_LITERAL
+	  	  |STRING_LITERAL 
+		  ;
+
+mul_body: mul_body body
+          |body
+		  ;
+
 body:function_u
 	 |function_d
-	 |return;
+	 |return
+	 |
+	 ;
 
-param_d: params_list SEMICOLON;
-
-function_u:IDEN O_BRACK expre C_BRACK SEMICOLON
-		   |IDEN O_BRACK expre C_BRACK
+function_u:IDEN O_PAREN C_PAREN SEMICOLON
+		   |IDEN O_PAREN IDEN C_PAREN
 		   ;
 
 %%
