@@ -59,7 +59,7 @@ D   [0-9]
 
 "true"             return BOOL_TRUE;
 "false"            return BOOL_FALSE;
-'.'                return CHAR; 
+'.'                return CHAR_LITERAL; 
 {L}({L}|{D}|_)*    return IDEN;
 \"([^\\\"]|\\.)*\" return STRING_LITERAL;
 

@@ -9,7 +9,7 @@
 	} TreeNode;
 	// binary tree functions declerations
 	TreeNode* makeNode(char*, TreeNode*, TreeNode*);
-	void print_preorder(TreeNode*, int);
+	void prinpreorder(TreeNode*, int);
 	extern int yylex();
 	extern int yylineno;
 	extern char *yytext;
@@ -22,86 +22,61 @@
 
 /* TOKENS */
 /* TYPES */
-%token T_BOOLEAN T_CHAR T_VOID T_INTEGER T_STRING T_P_INT T_P_CHAR T_NULL
+%token <string> BOOLEAN CHAR VOID INT STRING PINT PCHAR PNULL
 /* OPERATORS */
-%right OP_ADDRESS OP_CONTENT
-%left OP_MINUS OP_PLUS 
-%left OP_MUL OP_DIVIDE
-%left OP_ASSIGMENT OP_EQUAL OP_GT OP_GTE OP_LT OP_LTE
-%token OP_AND OP_NOT OP_NOTEQUAL OP_OR
+%right ADDRESS CONTENT
+%left MINUS PLUS 
+%left MUL DIVIDE
+%left ASSIGMENT EQUAL GT GTE LT LTE NOTEQUAL
+%token <string> AND NOT OR
 /* CONDITIONS */
-%token <string> C_IF C_ELSE L_WHILE L_DOWHILE L_FOR K_RETURN
+%token <string> IF ELSE WHILE DOWHILE FOR RETURN
 /* globals */
-%token <string> LT_TRUE T_FASLE LT_CHAR IDEN STRING_LITERAL LT_INTEGER 
+%token <string> BOOL_TRUE BOOL_FALSE CHAR_LITERAL IDEN STRING_LITERAL INTEGER 
 /* others */
-%token <string> T_SEMICOLON T_COLON T_COMMA CURL_O CURL_R T_OPENPAREN T_CLOSEPAREN T_VERT_BAR T_R_BRACKET T_L_BRACKET
+%token <string> SEMICOLON COLON COMMA O_CURL C_CURL O_PAREN C_PAREN VERT_LINE C_BRACK O_BRACK
 /* types */
 /* definitions */
 %%
 
-s: functions;
+s: program;
 
-functions: 	function_d functions 
-           	| function_d
-           	;
+program: functions;
 
-function_d: param T_OPENPAREN params T_CLOSEPAREN CURL_O body CURL_R;
+functions: functions function_d
+		   |function_d
+		   ;
 
-function_u: IDEN T_OPENPAREN params T_CLOSEPAREN;
+function_d: funtype IDEN O_PAREN params_list C_PAREN O_CURL  C_CURL;
 
-body: params
-	  |if_statment
-	  |body return_statment
-	  ; 
-
-type: T_BOOLEAN | T_INTEGER | T_P_CHAR | T_P_INT;
-
-params: param T_SEMICOLON
-		|param T_COMMA params T_SEMICOLON
-		|expre
-		| 
-		;
-
-param: type IDEN;
-
-if_statment: C_IF T_OPENPAREN mul_logic_expre T_CLOSEPAREN CURL_O body CURL_R
-			 |C_IF T_OPENPAREN mul_logic_expre T_CLOSEPAREN CURL_O body CURL_R C_ELSE CURL_O body CURL_R
+params_list: params_list COMMA param
+		     |param
 			 ;
 
-logic_expre: expre logic_opr expre
-			 |LT_TRUE
-			 |T_FASLE
-			 |function_u
-			 ;
-
-mul_logic_expre: logic_expre OP_AND mul_logic_expre
-				 |logic_expre OP_OR mul_logic_expre
-				 |logic_expre
-			 	 ;
-			 
-expre: IDEN
-	   |LT_INTEGER
-	   |LT_CHAR
-	   |LT_TRUE
-	   |T_FASLE
-	   |T_STRING
-	   |expre OP_PLUS expre
-	   |expre OP_MINUS expre
-	   |expre OP_MUL expre
-	   |expre OP_DIVIDE expre
-	   |function_u
+param: param_type IDEN
+	   |IDEN
 	   ;
 
+funtype:VOID
+	    |BOOLEAN
+	    |CHAR
+		|INT
+		|PCHAR
+		|PINT
+		;
 
-return_statment: K_RETURN expre T_SEMICOLON;
-
-logic_opr: OP_EQUAL
-           | OP_GT
-		   | OP_GTE
-		   | OP_LT 
-		   | OP_LTE
-		   | OP_NOTEQUAL
+param_type:INT
+           |BOOLEAN
+		   |CHAR
+		   |PCHAR
+		   |PINT
 		   ;
+
+
+
+
+
+
 %%
 /* subroutines */
 int yyerror(const char *msg)
@@ -121,7 +96,7 @@ TreeNode* makeNode(char* token, TreeNode* left, TreeNode* right){
   new_node->right = right;
   return new_node;
 }
-void print_preorder(TreeNode* tree,int indent)
+void prinpreorder(TreeNode* tree,int indent)
 {
     int i;
     if (tree)
@@ -130,7 +105,7 @@ void print_preorder(TreeNode* tree,int indent)
           printf("\t");
         
         printf("(%s)\n",tree->data);
-        print_preorder(tree->left, indent+1);
-        print_preorder(tree->right, indent+1);
+        prinpreorder(tree->left, indent+1);
+        prinpreorder(tree->right, indent+1);
     }
 }

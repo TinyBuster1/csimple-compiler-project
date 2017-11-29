@@ -1,11 +1,3 @@
-int main(){
-    if(x<5 && y>10){
+int main(int x,int y){}
 
-    }else{
-        if(x<0 || check(0)==true){
-            int x,yz;
-            return x;
-        }
-    }
-    return 0;
-}
+boolean check(int z, boolean x,charp c){}
