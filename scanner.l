@@ -18,14 +18,7 @@ D   [0-9]
 \/\/.*\n$ {}
 \/\*(.|\n)*\*\/ {}
     /* TYPES */
-"boolean" return BOOLEAN;
-"char"    return CHAR;
-"void"    return VOID;
-"int"     return INT;
-"string"  return STRING;
-"intp"    return PINT;
-"charp"   return PCHAR;
-"null"    return PNULL;
+"boolean"|"char"|"void"|"int"|"string"|"intp"|"charp"|"null" { yylval.string = strdup(yytext); return TYPE; }
 
     /* CONDITIONS */
 "if"      return IF;
@@ -39,8 +32,8 @@ D   [0-9]
 
     /* OPERATORS */
 "&&"    return AND;
-"/"     return DIVIDE;
-"="     return ASSIGMENT;
+"/"     return DIV;
+"="     return ASS;
 "=="    return EQUAL;
 ">"     return GT;
 ">="    return GTE;
@@ -60,7 +53,7 @@ D   [0-9]
 "true"             return BOOL_TRUE;
 "false"            return BOOL_FALSE;
 '.'                return CHAR_LITERAL; 
-{L}({L}|{D}|_)*    return IDEN;
+{L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDEN; }
 \"([^\\\"]|\\.)*\" return STRING_LITERAL;
 
     /* ints types */
@@ -98,7 +91,3 @@ int getIntValue(char* text, int type) {
 	int value = (int) strtol(yytext, 0, type);
 	return value;
 }
-
-/* TODO: add logical expr */
-/* TODO: add unary expr */
-/* TODO: not sure about yacc nubers handling */
