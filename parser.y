@@ -29,16 +29,25 @@
 %token <string> ADDRESS CONTENT TYPE RETURN IDEN
 %token <string> SEMICOLON COLON COMMA O_CURL C_CURL O_PAREN C_PAREN VERT_LINE C_BRACK O_BRACK ASS
 /* NODES */
-%type <Node> t ident
+%type <Node> var_name var_type
+%type <Node> int_num bool_type var_char str 
 /* SPECS */
 %left PLUS MINUS MUL DIV
 %left AND OR GT GTE LT LTE EQUAL NOTEQUAL
 %right ADDRESS CONTENT NOT
 /* definitions */
 %%
-start:	t {printInOrder($1, 0);};
-t:	 	ident {makeNode("IDENTIFIER", $1, NULL);};
-ident: IDEN {$$ = makeNode($1, NULL,NULL);};
+s: var_name {printInOrder($1, 0);};
+
+
+var_type:	TYPE {$$ = makeNode($1, NULL, NULL);};
+bool_type:	BOOL_TRUE { $$ = makeNode("true", NULL, NULL); }
+          | BOOL_FALSE { $$ = makeNode("false", NULL, NULL); };
+var_name:	IDEN {$$ = makeNode($1, NULL, NULL);};
+int_num:	INTEGER  {$$ = makeNode($1, NULL, NULL);};
+var_char:	CHAR_LITERAL {$$ = makeNode($1, NULL, NULL);};
+str:		STRING_LITERAL {$$ = makeNode($1, NULL, NULL);};
+
 %%
 /* subroutines */
 int yyerror(const char *msg)
@@ -64,7 +73,7 @@ Node* makeNode(char* token, Node* left, Node* right){
 void printInOrder(Node* tree,int indent)
 {
 	printf("PARSE TREE:\n");
-    printf("input tree %p:\n", tree);
+    printf("input node %p:\n", tree);
     
 	int i;
     if (tree)
@@ -72,6 +81,7 @@ void printInOrder(Node* tree,int indent)
         for(i = 0; i < indent; i++)
           printf("\t");
         
+		printf("output node %p:\n", tree);
         printf("(%s)\n",tree->data);
         printInOrder(tree->left, indent+1);
         printInOrder(tree->right, indent+1);
