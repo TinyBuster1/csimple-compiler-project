@@ -14,6 +14,12 @@
 	extern int yylineno;
 	extern char *yytext;
 	int yyerror(const char *msg);
+
+	void printer(const char * rule, int id){
+		fflush(stdout);
+		fprintf(stdout, "rule: %s > id : %d\n", rule, id);
+	}
+
 %}
 %union {
   char* string;
@@ -39,19 +45,18 @@
 /* definitions */
 %%
 
-s: program|STRING_LITERAL;
+s: 	functions {printer("s",1);}
+	|
+	STRING_LITERAL {printer("s",2);}
+	;
 
-program: functions;
-
-functions: functions function_d
-		   |function_d
+functions: functions function_d {printer("functions",1);}
+		   |function_d {printer("functions",2);}
 		   ;
 
 function_d: funtype IDEN O_PAREN params_list C_PAREN O_CURL param_d body C_CURL;
 
-params_list: params_list COMMA param
-		     |param
-			 ;
+params_list: param | params_list COMMA param;
 
 param: param_type IDEN
 	   |IDEN
@@ -68,6 +73,7 @@ funtype:VOID
 param_type:INT
            |BOOLEAN
 		   |CHAR
+		   |STRING
 		   |PCHAR
 		   |PINT
 		   ;
@@ -89,13 +95,11 @@ body:function_u
 	 |function_d
 	 |return;
 
-param_d:param_d SEMICOLON params_list
-		|params_list SEMICOLON;
+param_d: params_list SEMICOLON;
 
 function_u:IDEN O_BRACK expre C_BRACK SEMICOLON
 		   |IDEN O_BRACK expre C_BRACK
 		   ;
-
 
 %%
 /* subroutines */
