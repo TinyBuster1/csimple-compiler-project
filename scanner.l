@@ -18,67 +18,67 @@ D   [0-9]
 \/\/.*\n$ {}
 \/\*(.|\n)*\*\/ {}
     /* TYPES */
-"boolean" return T_BOOLEAN;
-"char"    return T_CHAR;
-"void"    return T_VOID;
-"int"     return T_INTEGER;
-"string"  return T_STRING;
-"intp"    return T_P_INT;
-"charp"   return T_P_CHAR;
-"null"    return T_NULL;
+"boolean" return BOOLEAN;
+"char"    return CHAR;
+"void"    return VOID;
+"int"     return INT;
+"string"  return STRING;
+"intp"    return PINT;
+"charp"   return PCHAR;
+"null"    return PNULL;
 
     /* CONDITIONS */
-"if"      return C_IF;
-"else"    return C_ELSE;
+"if"      return IF;
+"else"    return ELSE;
     /* LOOPS */
-"while"   return L_WHILE;
-"do"      return L_DOWHILE;
-"for"     return L_FOR;
+"while"   return WHILE;
+"do"      return DOWHILE;
+"for"     return FOR;
     /* KEYWORDS */
-"return"  return K_RETURN;
+"return"  return RETURN;
 
     /* OPERATORS */
-"&&"    return OP_AND;
-"/"     return OP_DIVIDE;
-"="     return OP_ASSIGMENT;
-"=="    return OP_EQUAL;
-">"     return OP_GT;
-">="    return OP_GTE;
-"<"     return OP_LT;
-"<="    return OP_LTE;
-"-"     return OP_MINUS;
-"!"     return OP_NOT;
-"!="    return OP_NOTEQUAL;
-"||"    return OP_OR;
-"+"     return OP_PLUS;
-"*"     return OP_MUL; 
-"&"     return OP_ADDRESS;
-"^"     return OP_CONTENT;
+"&&"    return AND;
+"/"     return DIVIDE;
+"="     return ASSIGMENT;
+"=="    return EQUAL;
+">"     return GT;
+">="    return GTE;
+"<"     return LT;
+"<="    return LTE;
+"-"     return MINUS;
+"!"     return NOT;
+"!="    return NOTEQUAL;
+"||"    return OR;
+"+"     return PLUS;
+"*"     return MUL; 
+"&"     return ADDRESS;
+"^"     return CONTENT;
 
     /* Literal Lexemes */
 
-"true"             return LT_TRUE;
-"false"            return T_FASLE;
-'.'                return LT_CHAR; 
+"true"             return BOOL_TRUE;
+"false"            return BOOL_FALSE;
+'.'                return CHAR; 
 {L}({L}|{D}|_)*    return IDEN;
 \"([^\\\"]|\\.)*\" return STRING_LITERAL;
 
     /* ints types */
 
-(0|[1-9][0-9]*|0[xX][0-9a-fA-F]+|0[0-7]+|[01]+b)  { yylval.string = strdup(yytext); return LT_INTEGER; }
+(0|[1-9][0-9]*|0[xX][0-9a-fA-F]+|0[0-7]+|[01]+b)  { yylval.string = strdup(yytext); return INTEGER; }
 
     /* others */
 
-";" return T_SEMICOLON; 
-":" return T_COLON; 
-"," return T_COMMA; 
-"{" return CURL_O; 
-"}" return CURL_R; 
-"(" return T_OPENPAREN; 
-")" return T_CLOSEPAREN; 
-"|" return T_VERT_BAR; 
-"]" return T_R_BRACKET; 
-"[" return T_L_BRACKET; 
+";" return SEMICOLON; 
+":" return COLON; 
+"," return COMMA; 
+"{" return O_CURL; 
+"}" return C_CURL; 
+"(" return O_PAREN; 
+")" return C_PAREN; 
+"|" return VERT_LINE; 
+"]" return C_BRACK; 
+"[" return O_BRACK; 
 
 
 [ \t\r]               ; /* ignore blank spaces */
