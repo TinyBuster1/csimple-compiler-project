@@ -1,3 +1,8 @@
-int main(int x,int y){}
+int main(int x,int y){
+    int x,y,z;
+    char c;
+    return x;
+   
+    
+}
 
-boolean check(int z, boolean x,charp c){}

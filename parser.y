@@ -39,7 +39,7 @@
 /* definitions */
 %%
 
-s: program;
+s: program|STRING_LITERAL;
 
 program: functions;
 
@@ -47,7 +47,7 @@ functions: functions function_d
 		   |function_d
 		   ;
 
-function_d: funtype IDEN O_PAREN params_list C_PAREN O_CURL  C_CURL;
+function_d: funtype IDEN O_PAREN params_list C_PAREN O_CURL param_d body C_CURL;
 
 params_list: params_list COMMA param
 		     |param
@@ -73,8 +73,28 @@ param_type:INT
 		   ;
 
 
+return: RETURN expre SEMICOLON;
 
+expre:BOOL_TRUE
+	  |BOOL_FALSE
+	  |INTEGER
+	  |CHAR_LITERAL
+	  |STRING_LITERAL
+	  |PCHAR
+	  |PINT
+	  |IDEN
+	  ;
+		
+body:function_u
+	 |function_d
+	 |return;
 
+param_d:param_d SEMICOLON params_list
+		|params_list SEMICOLON;
+
+function_u:IDEN O_BRACK expre C_BRACK SEMICOLON
+		   |IDEN O_BRACK expre C_BRACK
+		   ;
 
 
 %%
