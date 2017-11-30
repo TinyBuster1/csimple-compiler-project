@@ -85,7 +85,7 @@ stmt: var_dec { $$ = makeParentNode("STATEMENT", $1); }
 	;
 
 
-assignment: ass_tar ASS expr { $$ = makePairNode("ASSIGNMENT", $1, $3); };
+assignment: ass_tar ASS expr SEMICOLON { $$ = makePairNode("ASSIGNMENT", $1, $3); };
 
 ass_tar: iden_name { $$ = makeParentNode("ASSIGNMENT TARGET: VARIABLE", $1); };
 
