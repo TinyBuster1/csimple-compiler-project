@@ -33,7 +33,8 @@
 %token <string> ADDRESS CONTENT TYPE RETURN IDEN
 %token <string> SEMICOLON COLON COMMA O_CURL C_CURL O_PAREN C_PAREN VERT_LINE C_BRACK O_BRACK ASS
 /* SPECS */
-%left PLUS MINUS MUL DIV
+%left PLUS MINUS 
+%left MUL DIV
 %left AND OR GT GTE LT LTE EQUAL NOTEQUAL
 %right ADDRESS CONTENT NOT
 
@@ -43,9 +44,9 @@
 %type <Node> int_num bool_type var_char str
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
-%type <Node> str_index ptr
+%type <Node> str_index
 %type <Node> expr func_call return_stmt
-%type <Node> cond block stmt multi_stmt
+%type <Node> cond block block_return stmt multi_stmt
 %type <Node> assignment ass_tar
 %type <Node> program functions function
 
@@ -62,9 +63,9 @@ functions: functions function { $$ = makePairNode("Functions", $1, $2); }
         | function { $$ = $1; }
 		;
 function: 
-		stmt_type iden_name O_PAREN parameters C_PAREN block { $$ = makeQuadNode("FUNCTION", $1, $2, $4, $6); }
+		stmt_type iden_name O_PAREN parameters C_PAREN block { $$ = makeQuadNode("FUNCTION PARAMS", $1, $2, $4, $6); }
 		| 
-		stmt_type iden_name O_PAREN C_PAREN block { $$ = makeTripelNode("FUNCTION", $1, $2, $5); }
+		stmt_type iden_name O_PAREN C_PAREN block_return { $$ = makeTripelNode("FUNCTION NO PARAMS", $1, $2, $5); }
 		;
 
 func_call: iden_name O_PAREN expr C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
@@ -75,17 +76,22 @@ block: O_CURL multi_stmt C_CURL {$$ = makeParentNode("BLOCK",$2);}
       | O_CURL C_CURL {$$ = makeBaseLeaf("EMPTY BLOCK");}
       ;
 
+block_return: O_CURL multi_stmt return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
+      | O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN", $2);}
+      ;
+
 multi_stmt: multi_stmt stmt { $$ = makePairNode("MULTI STATEMENTS", $1,$2); }
 		| stmt {$$ = $1;};
 
-stmt: var_dec { $$ = makeParentNode("STATEMENT", $1); }
-	| cond { $$ = makeParentNode("STATEMENT", $1); }
-	| block { $$ = makeParentNode("STATEMENT", $1); }
-	| assignment SEMICOLON { $$ = makeParentNode("STATEMENT", $1); }
+stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
+	| cond { $$ = makeParentNode("COND STMT", $1); }
+	| block { $$ = makeParentNode("BLOCK STMT", $1); }
+	| assignment { $$ = makeParentNode("ASS STMT", $1); }
+	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
 	;
 
 
-assignment: ass_tar ASS expr SEMICOLON { $$ = makePairNode("ASSIGNMENT", $1, $3); };
+assignment: ass_tar ASS expr SEMICOLON{ $$ = makePairNode("ASSIGNMENT", $1, $3); };
 
 ass_tar: iden_name { $$ = makeParentNode("ASSIGNMENT TARGET: VARIABLE", $1); };
 
@@ -110,13 +116,16 @@ cond: IF O_PAREN expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
 expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
 	| int_num  { $$ = makeParentNode("INTEGER", $1); }
 	| var_char { $$ = makeParentNode("CHARACTER", $1); }
+	| str { $$ = makeParentNode("STRING", $1); }
+	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
 	| bool_type { $$ = makeParentNode("BOOLEAN", $1); }
+	| ADDRESS iden_name { $$ = makeParentNode("POINTER", $2); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("NEGATIVE", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
-    | expr MINUS expr { $$ = makePairNode("-",$1,$3); }
     | expr MUL expr { $$ = makePairNode("*",$1,$3); }
-    | expr expr expr { $$ = makePairNode("/",$1,$3); }
+    | expr MINUS expr { $$ = makePairNode("-",$1,$3); }
+    | expr DIV expr { $$ = makePairNode("/",$1,$3); }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
@@ -128,7 +137,10 @@ expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
 	| func_call { $$ = $1; }
 	;
 
-stmt_type:	TYPE {$$ = makeBaseLeaf($1);};
+stmt_type:	TYPE {$$ = makeBaseLeaf($1);} 
+			| VOID {$$ = makeBaseLeaf("VOID");}
+		 	| STRING iden_name str_index { $$ = makePairNode("STRING DEC", $2, $3) ;};
+
 bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("true"); }
           | BOOL_FALSE { $$ = makeBaseLeaf("false"); };
 iden_name:	IDEN {$$ = makeBaseLeaf($1);};
@@ -136,8 +148,6 @@ int_num:	INTEGER  {$$ = makeBaseLeaf($1);};
 var_char:	CHAR_LITERAL {$$ = makeBaseLeaf($1);};
 str:		STRING_LITERAL {$$ = makeBaseLeaf($1);};
 str_index:  iden_name O_BRACK expr C_BRACK { $$ = makePairNode("STRING INDEX", $1, $3) ;};
-
-ptr: ADDRESS iden_name { $$ = makeParentNode("POINTER", $2); };
 return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);};
 %%
 /* subroutines */
