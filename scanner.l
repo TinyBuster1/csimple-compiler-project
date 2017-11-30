@@ -18,7 +18,8 @@ D   [0-9]
 \/\/.*\n$ {}
 \/\*(.|\n)*\*\/ {}
     /* TYPES */
-"boolean"|"char"|"void"|"int"|"string"|"intp"|"charp"|"null" { yylval.string = strdup(yytext); return TYPE; }
+"boolean"|"char"|"void"|"int"|"intp"|"charp"|"null" { yylval.string = strdup(yytext); return TYPE; }
+"string" return STRING;
 
     /* CONDITIONS */
 "if"      return IF;
@@ -74,7 +75,7 @@ D   [0-9]
 "[" return O_BRACK; 
 
 
-[ \t\r]               ; /* ignore blank spaces */
+[ \t\f\v]               ; /* ignore blank spaces */
 [\n] 			         { yylineno = yylineno + 1; }
 .   yyerror("invalid character");
 %%
