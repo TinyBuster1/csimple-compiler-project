@@ -18,9 +18,10 @@ D   [0-9]
 \/\/.*\n$ {}
 \/\*(.|\n)*\*\/ {}
     /* TYPES */
-"boolean"|"char"|"void"|"int"|"intp"|"charp"|"null" { yylval.string = strdup(yytext); return TYPE; }
+"boolean"|"char"|"int"|"intp"|"charp" { yylval.string = strdup(yytext); return TYPE; }
 "string" return STRING;
-
+"void"   return VOID;
+"null"   { yylval.string = strdup(yytext); return NULL_TYPE; }
     /* CONDITIONS */
 "if"      return IF;
 "else"    return ELSE;

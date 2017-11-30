@@ -1,4 +1,4 @@
-if (x > y)
+int func(int x, char y)
 {
-    int x;
+    int x, y, z;
 }
