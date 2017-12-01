@@ -14,8 +14,7 @@
 	Node* makeBaseLeaf(char*);
 	Node* makeParentNode(char*, Node*);
 	Node* makePairNode(char*, Node*, Node*);
-	Node* makeTripelNode(char*, Node*, Node*,Node*);
-	Node* makeQuadNode(char*, Node*, Node*,Node*,Node*);
+	Node* makeTripNode(char*, Node*, Node*, Node*);
 	void printInOrder(Node*, int);
 	int yyerror(const char *msg);
 
@@ -42,7 +41,7 @@
 /* NODES */
 /* basic leaf */
 %type <Node> iden_name stmt_type
-%type <Node> int_num bool_type var_char str
+%type <Node> bool_type
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> str_index
@@ -65,11 +64,15 @@ functions: functions function { $$ = makePairNode("Functions", $1, $2); }
 		;
 function: 
 		stmt_type iden_name O_PAREN parameters C_PAREN block_return { 
-				$$ = makeQuadNode("FUNCTION PARAMS", $1, $2, $4, $6); 
+				Node * input = makePairNode("INPUT",$2, $4);
+				Node * output = makePairNode("OUTPUT", $1, $6);
+				$$ = makePairNode("FUNCTION", input, output); 
 			}
 		| 
 		stmt_type iden_name O_PAREN C_PAREN block_return {
-			 	$$ = makeTripelNode("FUNCTION NO PARAMS", $1, $2, $5); 
+				Node * input = makeParentNode("INPUT",$2);
+				Node * output = makePairNode("OUTPUT", $1, $5);
+				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
 		;
 
@@ -90,9 +93,16 @@ body: body stmt { $$ = makePairNode("BODY", $1,$2); }
 
 stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
 	| cond { $$ = makeParentNode("COND STMT", $1); }
+	| WHILE O_PAREN bool_expr C_PAREN stmt {$$ = makePairNode("WHILE LOOP",$3,$5); }
 	| WHILE O_PAREN bool_expr C_PAREN block {$$ = makePairNode("WHILE LOOP",$3,$5); }
-	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN block {$$ = makeQuadNode("FOR LOOP",$3,$5, $7, $9 ); }
-	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", makeParentNode("IDENTIFIER", $1), $3); }
+	| DOWHILE block WHILE O_PAREN bool_expr C_PAREN SEMICOLON {$$ = makePairNode("DO WHILE", $2, $5);}
+	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN stmt {
+			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
+		}
+	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN block {
+			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9); 
+		}
+	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
 	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
 	;
 
@@ -115,14 +125,15 @@ var_dec: stmt_type vars_list SEMICOLON { $$ = makePairNode("VARIABLES DECLERATIO
 vars_list: vars_list COMMA iden_name { $$ = makePairNode("MULTIPLE IDENTIFIERS", $1, $3); }
 		 | iden_name { $$ = $1; };
 
-cond: IF O_PAREN bool_expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
+cond: IF O_PAREN bool_expr C_PAREN stmt {$$ = makePairNode("IF",$3,$5); }
+	| IF O_PAREN bool_expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
 	| IF O_PAREN bool_expr C_PAREN block ELSE block {$$ = makePairNode("IF/ELSE",$3,makePairNode("boolean",$5, $7)); }
 	;
 
-expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
-	| int_num  { $$ = makeParentNode("int", $1); }
-	| var_char { $$ = makeParentNode("char", $1); }
-	| str { $$ = makeParentNode("string", $1); }
+expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
+	| INTEGER  {$$ = makeParentNode("INT", makeBaseLeaf($1));}
+	| CHAR_LITERAL {$$ = makeParentNode("char", makeBaseLeaf($1));}
+	| STRING_LITERAL {$$ = makeParentNode("string", makeBaseLeaf($1));}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
 	| bool_type { $$ = makeParentNode("boolean", $1); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
@@ -148,16 +159,13 @@ bool_expr:
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
 	;
 
-stmt_type:	TYPE {$$ = makeBaseLeaf($1);} 
+stmt_type:	TYPE {$$ = makeParentNode("TYPE", makeBaseLeaf($1));} 
 			| VOID {$$ = makeBaseLeaf("VOID");}
 		 	| STRING iden_name str_index { $$ = makePairNode("STRING DEC", $2, $3) ;};
 
 bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("true"); }
           | BOOL_FALSE { $$ = makeBaseLeaf("false"); };
-iden_name:	IDEN {$$ = makeBaseLeaf($1);};
-int_num:	INTEGER  {$$ = makeBaseLeaf($1);};
-var_char:	CHAR_LITERAL {$$ = makeBaseLeaf($1);};
-str:		STRING_LITERAL {$$ = makeBaseLeaf($1);};
+iden_name:	IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));};
 str_index:  iden_name O_BRACK expr C_BRACK { $$ = makePairNode("STRING INDEX", $1, $3) ;};
 return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);};
 %%
@@ -193,24 +201,14 @@ Node* makePairNode(char* token, Node* one, Node* two){
 	new_node->two = two;
 	return new_node;
 }
-Node* makeTripelNode(char* token, Node* one, Node* two, Node* three){
+
+Node* makeTripNode(char* token, Node* one, Node* two, Node * three){
 
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->data = strdup(token); // so we get a new pointer and not the original
 	new_node->one = one;
 	new_node->two = two;
 	new_node->three = three;
-	return new_node;
-}
-
-Node* makeQuadNode(char* token, Node* one, Node* two, Node* three, Node* four){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->one = one;
-	new_node->two = two;
-	new_node->three = three;
-	new_node->four = four;
 	return new_node;
 }
 
@@ -222,25 +220,21 @@ void printInOrder(Node* tree,int indent)
     if (tree)
     {
 		for (i = 0; i < indent; i++)
-			printf(" ");
+			printf(" |");
 
     	if (tree->data)
-	    	printf("(%s %s %s %s)",tree->data);
+	    	printf("-> %s\n",tree->data);
+
 		if (tree->one){
 	        printInOrder(tree->one, indent+1);
 		}
     	if (tree->two){
-			printf("\n\n\n");
 			printInOrder(tree->two, indent+1);
 		}
-    	if (tree->three){
-			printf("\n\n");
-	        printInOrder(tree->three, indent+1);
-			}
-		if (tree->four){
-			printf("\n");
-		    printInOrder(tree->four, indent+1);
-			}
+
+		if (tree->three){
+			printInOrder(tree->three, indent+1);
+		}
 		
     }
 }
