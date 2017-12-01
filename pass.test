@@ -78,6 +78,30 @@ int main()
         return 0;
     }    
     
+    x = 3 || 2;
+    x = (3 + 2) / 3 - 5 * 2;
+    x = true && false || false;
+    x = 5;
+    x = 0x012;
+    x = true;
+    x = -5;
+    x = ^x;
+    x = ^(p+5);
+    x = !false;
+
+    charp z; 
+    int x;
+    intp y;
+    x = 5;
+    y = &x;
+    x = 6;
+    charp x;
+    string y[10];
+    char z;
+    y = "foobar";
+    x = &y[5]; 
+    z = ^(x - 5); 
+    y = "barfoo"; 
     
     return 1;
 }
