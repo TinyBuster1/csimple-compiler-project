@@ -26,7 +26,7 @@
 
 /* TOKENS */
 /* TERMINALS */
-%token <string> CHAR_LITERAL STRING_LITERAL INTEGER STRING VOID NULL_TYPE
+%token <string> CHAR_LITERAL STRING_LITERAL INTEGER VOID NULL_TYPE
 %token <string> IF ELSE FOR WHILE DOWHILE BOOL_TRUE BOOL_FALSE
 %token <string> PLUS MINUS MUL DIV
 %token <string> AND OR EQUAL GT GTE LT LTE NOT NOTEQUAL
@@ -40,11 +40,11 @@
 
 /* NODES */
 /* basic leaf */
-%type <Node> iden_name stmt_type
+%type <Node> iden_name ident_type
 %type <Node> bool_type
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
-%type <Node> str_index
+%type <Node> arr_index
 %type <Node> expr bool_expr func_call return_stmt
 %type <Node> cond block block_return stmt body
 %type <Node> assignment
@@ -52,7 +52,8 @@
 
 /* negation--unary minus */
 %precedence NEG 
-
+%nonassoc IFX
+%nonassoc ELSE
 /* definitions */
 %%
 s: program {printInOrder($1, 0);};
@@ -63,15 +64,27 @@ functions: functions function { $$ = makePairNode("Functions", $1, $2); }
         | function { $$ = $1; }
 		;
 function: 
-		stmt_type iden_name O_PAREN parameters C_PAREN block_return { 
+		ident_type iden_name O_PAREN parameters C_PAREN block_return { 
 				Node * input = makePairNode("INPUT",$2, $4);
 				Node * output = makePairNode("OUTPUT", $1, $6);
 				$$ = makePairNode("FUNCTION", input, output); 
 			}
 		| 
-		stmt_type iden_name O_PAREN C_PAREN block_return {
+		ident_type iden_name O_PAREN C_PAREN block_return {
 				Node * input = makeParentNode("INPUT",$2);
 				Node * output = makePairNode("OUTPUT", $1, $5);
+				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
+			 }
+		| 
+		VOID iden_name O_PAREN parameters C_PAREN block { 
+				Node * input = makePairNode("INPUT",$2, $4);
+				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $6);
+				$$ = makePairNode("FUNCTION", input, output); 
+			}
+		| 
+		VOID iden_name O_PAREN C_PAREN block {
+				Node * input = makeParentNode("INPUT",$2);
+				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
 		;
@@ -89,44 +102,45 @@ block_return: O_CURL body return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$
       ;
 
 body: body stmt { $$ = makePairNode("BODY", $1,$2); }
-		| stmt {$$ = $1;};
+	| stmt {$$ = $1;};
 
-stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
-	| cond { $$ = makeParentNode("COND STMT", $1); }
+stmt: var_dec { $$ = $1; }
+	| cond { $$ = $1; }
 	| WHILE O_PAREN bool_expr C_PAREN stmt {$$ = makePairNode("WHILE LOOP",$3,$5); }
-	| WHILE O_PAREN bool_expr C_PAREN block {$$ = makePairNode("WHILE LOOP",$3,$5); }
-	| DOWHILE block WHILE O_PAREN bool_expr C_PAREN SEMICOLON {$$ = makePairNode("DO WHILE", $2, $5);}
+	| DOWHILE stmt WHILE O_PAREN bool_expr C_PAREN SEMICOLON {$$ = makePairNode("DO WHILE", $2, $5);}
 	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
-	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN block {
-			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9); 
-		}
 	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
-	| iden_name ASS bool_expr SEMICOLON { $$ = makePairNode("TRUE/FALSE", $1, $3); };
-	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
+	| iden_name ASS bool_expr SEMICOLON { $$ = makePairNode("=", $1, $3); }
+	| function  { $$ = $1; }
+	| block { $$ =  $1; }
 	;
 
 
-assignment: iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); };
+assignment: iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
+		;
 
 /* int x, char y */
 parameters:parameters COMMA single_param { $$ = makePairNode("PARAMETERS", $1, $3); }
 		| single_param {$$ = $1;}
 		;
 /* int x */
-single_param: stmt_type iden_name { $$ = makePairNode("PARAM", $1, $2); }
+single_param: ident_type iden_name { $$ = makePairNode("PARAM", $1, $2); }
+			;
 
 /* int x, y, z; */
-var_dec: stmt_type vars_list SEMICOLON { $$ = makePairNode("VARIABLES DECLERATION",$1 ,$2); };
+var_dec: ident_type vars_list SEMICOLON { $$ = makePairNode("VARIABLES DECLERATION",$1 ,$2); }
+	;
+
 
 /* x,y,z */
 vars_list: vars_list COMMA iden_name { $$ = makePairNode("MULTIPLE IDENTIFIERS", $1, $3); }
-		 | iden_name { $$ = $1; };
+		| iden_name { $$ = $1; }
+		;
 
-cond: IF O_PAREN bool_expr C_PAREN stmt {$$ = makePairNode("IF",$3,$5); }
-	| IF O_PAREN bool_expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
-	| IF O_PAREN bool_expr C_PAREN block ELSE block {$$ = makePairNode("IF/ELSE",$3,makePairNode("boolean",$5, $7)); }
+cond: IF bool_expr stmt  %prec IFX {$$ = makePairNode("IF",$2,$3); }
+	| IF bool_expr stmt ELSE stmt {$$ = makePairNode("IF/ELSE",$2,makePairNode("boolean",$3, $5)); }
 	;
 
 expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
@@ -134,7 +148,6 @@ expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
 	| CHAR_LITERAL {$$ = makeParentNode("char", makeBaseLeaf($1));}
 	| STRING_LITERAL {$$ = makeParentNode("string", makeBaseLeaf($1));}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
-	| bool_type { $$ = makeParentNode("boolean", $1); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
@@ -143,6 +156,7 @@ expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
     | expr DIV expr { $$ = makePairNode("/",$1,$3); }
 	| CONTENT iden_name { $$ = makeParentNode("^",$2); }
 	| ADDRESS iden_name { $$ = makeParentNode("&",$2); }
+	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
 	| func_call { $$ = $1; }
 	| O_PAREN expr C_PAREN { $$ = $2; }
 	;
@@ -159,17 +173,22 @@ bool_expr:
     | bool_expr AND bool_expr { $$ = makePairNode("&&",$1,$3); }
     | bool_expr OR bool_expr { $$ = makePairNode("||",$1,$3); }
 	| O_PAREN bool_expr C_PAREN { $$ = $2; }
+	| bool_type { $$ = makeParentNode("boolean", $1); }
 	;
 
-stmt_type:	TYPE {$$ = makeParentNode("TYPE", makeBaseLeaf($1));} 
-			| VOID {$$ = makeBaseLeaf("VOID");}
-		 	| STRING iden_name str_index { $$ = makePairNode("STRING DEC", $2, $3) ;};
-
+ident_type:	TYPE {$$ = makeParentNode("TYPE", makeBaseLeaf($1));};
 bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("true"); }
-          | BOOL_FALSE { $$ = makeBaseLeaf("false"); };
-iden_name:	IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));};
-str_index:  iden_name O_BRACK expr C_BRACK { $$ = makePairNode("STRING INDEX", $1, $3) ;};
-return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);};
+          | BOOL_FALSE { $$ = makeBaseLeaf("false"); }
+		  ;
+iden_name:	IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
+		| IDEN arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
+		| CONTENT IDEN {$$ = makeParentNode("PTR CONTENT",makeBaseLeaf($2));}
+		;
+arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;};
+return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
+			|
+			RETURN bool_type SEMICOLON { $$ = makeParentNode("RETURN",$2);}
+;
 %%
 /* subroutines */
 int yyerror(const char *msg)
