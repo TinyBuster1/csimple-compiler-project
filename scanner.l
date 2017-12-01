@@ -56,7 +56,7 @@ D   [0-9]
 "false"            return BOOL_FALSE;
 '.'                return CHAR_LITERAL; 
 {L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDEN; }
-\"([^\\\"]|\\.)*\" return STRING_LITERAL;
+\"([^\\\"]|\\.)*\" { yylval.string = strdup(yytext); return STRING_LITERAL; }
 
     /* ints types */
 

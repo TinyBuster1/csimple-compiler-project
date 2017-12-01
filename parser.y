@@ -46,9 +46,9 @@
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> str_index
-%type <Node> expr func_call return_stmt
-%type <Node> cond while_loop for_loop block block_return stmt multi_stmt for_stmt
-%type <Node> assignment ass_tar
+%type <Node> expr bool_expr func_call return_stmt
+%type <Node> cond block block_return stmt body
+%type <Node> assignment
 %type <Node> program functions function
 
 /* negation--unary minus */
@@ -64,7 +64,7 @@ functions: functions function { $$ = makePairNode("Functions", $1, $2); }
         | function { $$ = $1; }
 		;
 function: 
-		stmt_type iden_name O_PAREN parameters C_PAREN block { 
+		stmt_type iden_name O_PAREN parameters C_PAREN block_return { 
 				$$ = makeQuadNode("FUNCTION PARAMS", $1, $2, $4, $6); 
 			}
 		| 
@@ -77,30 +77,29 @@ func_call: iden_name O_PAREN expr C_PAREN {$$ = makePairNode("FUNCTION CALL", $1
 		| iden_name O_PAREN C_PAREN {$$ = makeParentNode("FUNCTION CALL NO PARAMS", $1);}
 		;
 
-block: O_CURL multi_stmt C_CURL {$$ = makeParentNode("BLOCK",$2);}
+block: O_CURL body C_CURL {$$ = makeParentNode("BLOCK",$2);}
       | O_CURL C_CURL {$$ = makeBaseLeaf("EMPTY BLOCK");}
       ;
 
-block_return: O_CURL multi_stmt return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
+block_return: O_CURL body return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
       | O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN", $2);}
       ;
 
-multi_stmt: multi_stmt stmt { $$ = makePairNode("MULTI STATEMENTS", $1,$2); }
+body: body stmt { $$ = makePairNode("BODY", $1,$2); }
 		| stmt {$$ = $1;};
 
 stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
 	| cond { $$ = makeParentNode("COND STMT", $1); }
-	| while_loop { $$ = makeParentNode("WHILE STMT", $1); }
-	| for_loop { $$ = makeParentNode("FOR STMT", $1); }
-	| block { $$ = makeParentNode("BLOCK STMT", $1); }
-	| assignment { $$ = makeParentNode("ASS STMT", $1); }
+	| WHILE O_PAREN bool_expr C_PAREN block {$$ = makePairNode("WHILE LOOP",$3,$5); }
+	| FOR O_PAREN assignment SEMICOLON bool_expr SEMICOLON assignment C_PAREN block {$$ = makeQuadNode("FOR LOOP",$3,$5, $7, $9 ); }
+	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", makeParentNode("IDENTIFIER", $1), $3); }
 	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
 	;
 
 
-assignment: ass_tar ASS expr SEMICOLON{ $$ = makePairNode("ASSIGNMENT", $1, $3); }
-
-ass_tar: iden_name { $$ = makeParentNode("ASSIGNMENT TARGET: VARIABLE", $1); };
+assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
+		|	iden_name ASS bool_expr { $$ = makePairNode("TRUE/FALSE", $1, $3); }
+;
 
 /* int x, char y */
 parameters:parameters COMMA single_param { $$ = makePairNode("PARAMETERS", $1, $3); }
@@ -116,29 +115,30 @@ var_dec: stmt_type vars_list SEMICOLON { $$ = makePairNode("VARIABLES DECLERATIO
 vars_list: vars_list COMMA iden_name { $$ = makePairNode("MULTIPLE IDENTIFIERS", $1, $3); }
 		 | iden_name { $$ = $1; };
 
-cond: IF O_PAREN expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
-	| IF O_PAREN expr C_PAREN block ELSE block {$$ = makePairNode("IF/ELSE",$3,makePairNode("BOOLEAN",$5, $7)); }
+cond: IF O_PAREN bool_expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
+	| IF O_PAREN bool_expr C_PAREN block ELSE block {$$ = makePairNode("IF/ELSE",$3,makePairNode("boolean",$5, $7)); }
 	;
 
-while_loop: WHILE O_PAREN expr C_PAREN block {$$ = makePairNode("WHILE LOOP",$3,$5); }; 
-for_stmt: FOR O_PAREN var_dec assignment expr SEMICOLON assignment C_PAREN {$$ = makeQuadNode("FOR STMT",$3,$4,$5, $7); };
-for_loop: for_stmt block {$$ = makePairNode("FOR LOOP", $1, $2);}; 
-
-
 expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
-	| int_num  { $$ = makeParentNode("INTEGER", $1); }
-	| var_char { $$ = makeParentNode("CHARACTER", $1); }
-	| str { $$ = makeParentNode("STRING", $1); }
+	| int_num  { $$ = makeParentNode("int", $1); }
+	| var_char { $$ = makeParentNode("char", $1); }
+	| str { $$ = makeParentNode("string", $1); }
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
-	| bool_type { $$ = makeParentNode("BOOLEAN", $1); }
-	| ADDRESS iden_name { $$ = makeParentNode("POINTER", $2); }
+	| bool_type { $$ = makeParentNode("boolean", $1); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
-	| MINUS expr %prec NEG { $$ = makeParentNode("NEGATIVE", $2); }
+	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
     | expr MUL expr { $$ = makePairNode("*",$1,$3); }
     | expr MINUS expr { $$ = makePairNode("-",$1,$3); }
     | expr DIV expr { $$ = makePairNode("/",$1,$3); }
-	| expr LT expr { $$ = makePairNode("<",$1,$3); }
+	| CONTENT iden_name { $$ = makeParentNode("^",$2); }
+	| ADDRESS iden_name { $$ = makeParentNode("&",$2); }
+	| func_call { $$ = $1; }
+	| O_PAREN expr C_PAREN { $$ = $2; }
+	;
+
+bool_expr: 
+	expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
     | expr GTE expr { $$ = makePairNode(">=",$1,$3); }
@@ -146,9 +146,6 @@ expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
     | expr NOTEQUAL expr { $$ = makePairNode("!=",$1,$3); }
     | expr AND expr { $$ = makePairNode("&&",$1,$3); }
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
-	| CONTENT iden_name { $$ = makeParentNode("^",$2); }
-	| ADDRESS iden_name { $$ = makeParentNode("&",$2); }
-	| func_call { $$ = $1; }
 	;
 
 stmt_type:	TYPE {$$ = makeBaseLeaf($1);} 
@@ -219,17 +216,31 @@ Node* makeQuadNode(char* token, Node* one, Node* two, Node* three, Node* four){
 
 void printInOrder(Node* tree,int indent)
 {    
+	// printf("add: %p\n",tree);
+	
 	int i;
     if (tree)
     {
-        printf("%s\n",tree->data);
-		if (tree->one)
+		for (i = 0; i < indent; i++)
+			printf(" ");
+
+    	if (tree->data)
+	    	printf("(%s %s %s %s)",tree->data);
+		if (tree->one){
 	        printInOrder(tree->one, indent+1);
-    	if (tree->two)
-	        printInOrder(tree->two, indent+1);
-    	if (tree->three)
+		}
+    	if (tree->two){
+			printf("\n\n\n");
+			printInOrder(tree->two, indent+1);
+		}
+    	if (tree->three){
+			printf("\n\n");
 	        printInOrder(tree->three, indent+1);
-		if (tree->four)
-	        printInOrder(tree->four, indent+1);
+			}
+		if (tree->four){
+			printf("\n");
+		    printInOrder(tree->four, indent+1);
+			}
+		
     }
 }
