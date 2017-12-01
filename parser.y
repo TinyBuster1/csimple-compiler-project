@@ -18,6 +18,7 @@
 	Node* makeQuadNode(char*, Node*, Node*,Node*,Node*);
 	void printInOrder(Node*, int);
 	int yyerror(const char *msg);
+
 %}
 %union {
   char* string; // node head
@@ -46,7 +47,7 @@
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> str_index
 %type <Node> expr func_call return_stmt
-%type <Node> cond block block_return stmt multi_stmt
+%type <Node> cond while_loop for_loop block block_return stmt multi_stmt for_stmt
 %type <Node> assignment ass_tar
 %type <Node> program functions function
 
@@ -63,9 +64,13 @@ functions: functions function { $$ = makePairNode("Functions", $1, $2); }
         | function { $$ = $1; }
 		;
 function: 
-		stmt_type iden_name O_PAREN parameters C_PAREN block { $$ = makeQuadNode("FUNCTION PARAMS", $1, $2, $4, $6); }
+		stmt_type iden_name O_PAREN parameters C_PAREN block { 
+				$$ = makeQuadNode("FUNCTION PARAMS", $1, $2, $4, $6); 
+			}
 		| 
-		stmt_type iden_name O_PAREN C_PAREN block_return { $$ = makeTripelNode("FUNCTION NO PARAMS", $1, $2, $5); }
+		stmt_type iden_name O_PAREN C_PAREN block_return {
+			 	$$ = makeTripelNode("FUNCTION NO PARAMS", $1, $2, $5); 
+			 }
 		;
 
 func_call: iden_name O_PAREN expr C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
@@ -85,13 +90,15 @@ multi_stmt: multi_stmt stmt { $$ = makePairNode("MULTI STATEMENTS", $1,$2); }
 
 stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
 	| cond { $$ = makeParentNode("COND STMT", $1); }
+	| while_loop { $$ = makeParentNode("WHILE STMT", $1); }
+	| for_loop { $$ = makeParentNode("FOR STMT", $1); }
 	| block { $$ = makeParentNode("BLOCK STMT", $1); }
 	| assignment { $$ = makeParentNode("ASS STMT", $1); }
 	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
 	;
 
 
-assignment: ass_tar ASS expr SEMICOLON{ $$ = makePairNode("ASSIGNMENT", $1, $3); };
+assignment: ass_tar ASS expr SEMICOLON{ $$ = makePairNode("ASSIGNMENT", $1, $3); }
 
 ass_tar: iden_name { $$ = makeParentNode("ASSIGNMENT TARGET: VARIABLE", $1); };
 
@@ -112,6 +119,11 @@ vars_list: vars_list COMMA iden_name { $$ = makePairNode("MULTIPLE IDENTIFIERS",
 cond: IF O_PAREN expr C_PAREN block {$$ = makePairNode("IF",$3,$5); }
 	| IF O_PAREN expr C_PAREN block ELSE block {$$ = makePairNode("IF/ELSE",$3,makePairNode("BOOLEAN",$5, $7)); }
 	;
+
+while_loop: WHILE O_PAREN expr C_PAREN block {$$ = makePairNode("WHILE LOOP",$3,$5); }; 
+for_stmt: FOR O_PAREN var_dec assignment expr SEMICOLON assignment C_PAREN {$$ = makeQuadNode("FOR STMT",$3,$4,$5, $7); };
+for_loop: for_stmt block {$$ = makePairNode("FOR LOOP", $1, $2);}; 
+
 
 expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
 	| int_num  { $$ = makeParentNode("INTEGER", $1); }
@@ -134,6 +146,8 @@ expr: iden_name { $$ = makeParentNode("IDENTIFIER", $1); }
     | expr NOTEQUAL expr { $$ = makePairNode("!=",$1,$3); }
     | expr AND expr { $$ = makePairNode("&&",$1,$3); }
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
+	| CONTENT iden_name { $$ = makeParentNode("^",$2); }
+	| ADDRESS iden_name { $$ = makeParentNode("&",$2); }
 	| func_call { $$ = $1; }
 	;
 
@@ -161,6 +175,7 @@ int main() {
   yyparse();
   return 0;
 }
+
 Node* makeBaseLeaf(char* token){
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->data = strdup(token); // so we get a new pointer and not the original

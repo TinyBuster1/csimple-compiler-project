@@ -37,6 +37,31 @@ void main()
                     }
                     else
                     {
+                        while (asdasd >= ASd)
+                        {
+                            for (int x; y = 0; z < 12; u = n + 1;)
+                            {
+                                int func()
+                                {
+                                    if (func())
+                                    {
+                                        if (x > askldjaklsdj && askldj > 2834 || alksjd > "test")
+                                        {
+                                        }
+                                        else
+                                        {
+                                            while (asdasd >= ASd)
+                                            {
+                                                for (int x; y = 0; z < 12; u = n + 1;)
+                                                {
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return func();
+                                }
+                            }
+                        }
                     }
                 }
                 return 1;
