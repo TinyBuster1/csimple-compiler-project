@@ -1,8 +1,8 @@
 int main()
 {
-    do
-    {
-        x = 5;
-    } while (x < 1);
+    if (x > 4 && a > 1 || a < 0)
+        asd = sad;
+
+    x = x > 1;
     return 1;
 }

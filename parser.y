@@ -103,13 +103,12 @@ stmt: var_dec { $$ = makeParentNode("VAR DEC STMT", $1); }
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9); 
 		}
 	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
+	| iden_name ASS bool_expr SEMICOLON { $$ = makePairNode("TRUE/FALSE", $1, $3); };
 	| function  { $$ = makeParentNode("FUNC DEC STMT", $1); }
 	;
 
 
-assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
-		|	iden_name ASS bool_expr { $$ = makePairNode("TRUE/FALSE", $1, $3); }
-;
+assignment: iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); };
 
 /* int x, char y */
 parameters:parameters COMMA single_param { $$ = makePairNode("PARAMETERS", $1, $3); }
@@ -154,9 +153,12 @@ bool_expr:
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
     | expr GTE expr { $$ = makePairNode(">=",$1,$3); }
     | expr EQUAL expr { $$ = makePairNode("==",$1,$3); }
+    | bool_expr EQUAL bool_expr { $$ = makePairNode("==",$1,$3); }
     | expr NOTEQUAL expr { $$ = makePairNode("!=",$1,$3); }
-    | expr AND expr { $$ = makePairNode("&&",$1,$3); }
-    | expr OR expr { $$ = makePairNode("||",$1,$3); }
+	| bool_expr NOTEQUAL bool_expr { $$ = makePairNode("!=",$1,$3); }
+    | bool_expr AND bool_expr { $$ = makePairNode("&&",$1,$3); }
+    | bool_expr OR bool_expr { $$ = makePairNode("||",$1,$3); }
+	| O_PAREN bool_expr C_PAREN { $$ = $2; }
 	;
 
 stmt_type:	TYPE {$$ = makeParentNode("TYPE", makeBaseLeaf($1));} 
