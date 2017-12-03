@@ -33,9 +33,9 @@
 %token <string> ADDRESS CONTENT TYPE RETURN IDEN
 %token <string> SEMICOLON COLON COMMA O_CURL C_CURL O_PAREN C_PAREN VERT_LINE C_BRACK O_BRACK ASS
 /* SPECS */
-%left PLUS MINUS 
+%left PLUS MINUS
 %left MUL DIV
-%left AND OR GT GTE LT LTE EQUAL NOTEQUAL
+%left AND OR GT GTE LT LTE EQUAL NOTEQUAL NEG
 %right ADDRESS CONTENT NOT
 
 /* NODES */
@@ -50,8 +50,6 @@
 %type <Node> assignment
 %type <Node> program functions function
 
-/* negation--unary minus */
-%precedence NEG 
 %nonassoc IFX
 %nonassoc ELSE
 /* definitions */
