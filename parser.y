@@ -48,7 +48,7 @@
 %type <Node> expr func_call return_stmt
 %type <Node> cond block block_return stmt body
 %type <Node> assignment
-%type <Node> program functions function
+%type <Node> program functions function f_parans
 
 %nonassoc IFX
 %nonassoc ELSE
@@ -73,21 +73,27 @@ function:
 				Node * output = makePairNode("OUTPUT", $1, $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
-		| 
+		
+		|
 		VOID iden_name O_PAREN parameters C_PAREN block { 
 				Node * input = makePairNode("INPUT",$2, $4);
-				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $6);
+				Node * output = makeParentNode("OUTPUT", $6);
 				$$ = makePairNode("FUNCTION", input, output); 
 			}
 		| 
 		VOID iden_name O_PAREN C_PAREN block {
 				Node * input = makeParentNode("INPUT",$2);
-				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $5);
+				Node * output = makeParentNode("OUTPUT", $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
 		;
 
-func_call: iden_name O_PAREN expr C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
+
+f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
+		| expr {$$ = $1;}
+		;
+
+func_call: iden_name O_PAREN f_parans C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
 		| iden_name O_PAREN C_PAREN {$$ = makeParentNode("FUNCTION CALL NO PARAMS", $1);}
 		;
 
@@ -96,11 +102,11 @@ block: O_CURL body C_CURL {$$ = makeParentNode("BLOCK",$2);}
       ;
 
 block_return: O_CURL body return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
-      | O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN", $2);}
+			| O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN",$2);} 
       ;
 
-body: body stmt { $$ = makePairNode("BODY", $1,$2); }
-	| stmt {$$ = $1;};
+body: body stmt { $$ = makePairNode("MULTI-LINE", $2 ,$1); }
+	| stmt {$$ = $1;}
 
 stmt: var_dec { $$ = $1; }
 	| cond { $$ = $1; }
