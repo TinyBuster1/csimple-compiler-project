@@ -1,13 +1,8 @@
-int main(){
-    int foo() {
-       return 0;
+if (x>y) {
+        x = x + f;
     }
-    void main() {
-        int a;
-        a = foo();
+    else {
+        y = x + y + z;
+        x = z + (c + n)*2;
+        z = f;
     }
-
-    int foo() { return 0; }
-    
-    return 0;
-}
