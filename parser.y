@@ -198,8 +198,8 @@ return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
 int yyerror(const char *msg)
 {
 	fflush(stdout);
-	fprintf(stderr, "Error: %s at line %d", msg, yylineno);
-	fprintf(stderr, "Parser does not expect '%s'",yytext);
+	fprintf(stderr, "Error: %s at line %d\n", msg, yylineno);
+	fprintf(stderr, "Parser does not expect '%s'\n",yytext);
 }
 int main() {
   yyparse();
