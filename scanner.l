@@ -14,11 +14,10 @@ D   [0-9]
 %%
     /* tokens */
     /* COMMENTS */
-\/\/.*\n$ {}
-\/\*(.|\n)*\*\/ {}
+"//".*           { /* DO NOTHING */ }
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }               
     /* TYPES */
-"boolean"|"char"|"string"|"int"|"intp"|"charp" { yylval.string = strdup(yytext); return TYPE; }
-"void"   return VOID;
+"void"|"boolean"|"char"|"string"|"int"|"intp"|"charp" { yylval.string = strdup(yytext); return TYPE; }
 "null"   { yylval.string = strdup(yytext); return NULL_TYPE; }
     /* CONDITIONS */
 "if"      return IF;
