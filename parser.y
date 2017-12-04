@@ -8,15 +8,27 @@
 	// binary tree struct
 	typedef struct Node{
 		char* data;
-		struct Node *one, *two, *three, *four;
+		struct Node *left, *middle, *right, *four;
 	} Node;
-	// binary tree functions declerations
+	// binary tree code declerations
 	Node* makeBaseLeaf(char*);
 	Node* makeParentNode(char*, Node*);
 	Node* makePairNode(char*, Node*, Node*);
 	Node* makeTripNode(char*, Node*, Node*, Node*);
 	void printInOrder(Node*, int);
 	int yyerror(const char *msg);
+
+
+
+	// HELPER
+	char * indenter(int indent){
+		char * spaces = (char*)malloc(sizeof(char) * (indent + 1));
+
+		for(int i = 0; i < indent; i++)
+			spaces[i] = ' ';
+		spaces[indent] = '\0';
+		return spaces;
+	}
 
 %}
 %union {
@@ -30,12 +42,12 @@
 %token <string> IF ELSE FOR WHILE DOWHILE BOOL_TRUE BOOL_FALSE
 %token <string> PLUS MINUS MUL DIV
 %token <string> AND OR EQUAL GT GTE LT LTE NOT NOTEQUAL
-%token <string> ADDRESS CONTENT TYPE RETURN IDEN
+%token <string> ADDRESS CONTENT TYPE RETURN IDENTIFIER
 %token <string> SEMICOLON COLON COMMA O_CURL C_CURL O_PAREN C_PAREN VERT_LINE C_BRACK O_BRACK ASS
 /* SPECS */
-%left PLUS MINUS 
+%left PLUS MINUS
 %left MUL DIV
-%left AND OR GT GTE LT LTE EQUAL NOTEQUAL
+%left AND OR GT GTE LT LTE EQUAL NOTEQUAL NEG
 %right ADDRESS CONTENT NOT
 
 /* NODES */
@@ -46,22 +58,18 @@
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> arr_index
 %type <Node> expr func_call return_stmt
-%type <Node> cond block block_return stmt body
+%type <Node> cond block block_return stmt
 %type <Node> assignment
-%type <Node> program functions function
+%type <Node> code function f_parans
 
-/* negation--unary minus */
-%precedence NEG 
 %nonassoc IFX
 %nonassoc ELSE
 /* definitions */
 %%
-s: program {printInOrder($1, 0);};
+start: code {printInOrder($1, 0);};
 
-program: functions { $$ = makeParentNode("Program",$1); };
-
-functions: functions function { $$ = makePairNode("Functions", $1, $2); }
-        | function { $$ = $1; }
+code: code stmt { $$ = makePairNode("MULTI-LINE", $2 ,$1); }
+	| stmt {$$ = $1;}
 		;
 function: 
 		ident_type iden_name O_PAREN parameters C_PAREN block_return { 
@@ -75,34 +83,37 @@ function:
 				Node * output = makePairNode("OUTPUT", $1, $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
-		| 
+		
+		|
 		VOID iden_name O_PAREN parameters C_PAREN block { 
 				Node * input = makePairNode("INPUT",$2, $4);
-				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $6);
+				Node * output = makeParentNode("OUTPUT", $6);
 				$$ = makePairNode("FUNCTION", input, output); 
 			}
 		| 
 		VOID iden_name O_PAREN C_PAREN block {
 				Node * input = makeParentNode("INPUT",$2);
-				Node * output = makePairNode("OUTPUT", makeBaseLeaf("VOID"), $5);
+				Node * output = makeParentNode("OUTPUT", $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
 		;
 
-func_call: iden_name O_PAREN expr C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
+
+f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
+		| expr {$$ = $1;}
+		;
+
+func_call: iden_name O_PAREN f_parans C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
 		| iden_name O_PAREN C_PAREN {$$ = makeParentNode("FUNCTION CALL NO PARAMS", $1);}
 		;
 
-block: O_CURL body C_CURL {$$ = makeParentNode("BLOCK",$2);}
+block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
       | O_CURL C_CURL {$$ = makeBaseLeaf("EMPTY BLOCK");}
       ;
 
-block_return: O_CURL body return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
-      | O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN", $2);}
+block_return: O_CURL code return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
+			| O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN",$2);} 
       ;
-
-body: body stmt { $$ = makePairNode("BODY", $1,$2); }
-	| stmt {$$ = $1;};
 
 stmt: var_dec { $$ = $1; }
 	| cond { $$ = $1; }
@@ -140,15 +151,17 @@ vars_list: vars_list COMMA iden_name { $$ = makePairNode("MULTIPLE IDENTIFIERS",
 		| iden_name { $$ = $1; }
 		;
 
-cond: IF expr stmt  %prec IFX {$$ = makePairNode("IF",$2,$3); }
-	| IF expr stmt ELSE stmt {$$ = makePairNode("IF/ELSE",$2,makePairNode("boolean",$3, $5)); }
+cond: IF expr stmt %prec IFX {$$ = makePairNode("IF",$2,$3); }
+	| IF expr stmt ELSE stmt {$$ = makeTripNode("IF/ELSE",$2, $3, $5); }
 	;
 
-expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
-	| IDEN arr_index {$$ = makeParentNode("ARRAY ACCESS",makeBaseLeaf($1));}
-	| INTEGER  {$$ = makeParentNode("INT", makeBaseLeaf($1));}
-	| CHAR_LITERAL {$$ = makeParentNode("char", makeBaseLeaf($1));}
-	| STRING_LITERAL {$$ = makeParentNode("string", makeBaseLeaf($1));}
+expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
+	| INTEGER  {$$ = makeBaseLeaf($1);}
+	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
+	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
+	| func_call { $$ = $1; }
+	| O_PAREN expr C_PAREN { $$ = $2; }
+	| IDENTIFIER arr_index {$$ = makeParentNode("ACCESS INDEX",$2);}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
@@ -159,8 +172,6 @@ expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
 	| CONTENT expr { $$ = makeParentNode("^",$2); }
 	| ADDRESS expr { $$ = makeParentNode("&",$2); }
 	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
-	| func_call { $$ = $1; }
-	| O_PAREN expr C_PAREN { $$ = $2; }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
@@ -172,12 +183,12 @@ expr: IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
 	| bool_type { $$ = makeParentNode("boolean", $1); }
 	;
 
-ident_type:	TYPE {$$ = makeParentNode("TYPE", makeBaseLeaf($1));};
-bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("true"); }
-          | BOOL_FALSE { $$ = makeBaseLeaf("false"); }
+ident_type:	TYPE {$$ = makeBaseLeaf($1);};
+bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("bool_true"); }
+          | BOOL_FALSE { $$ = makeBaseLeaf("bool_false"); }
 		  ;
-iden_name:	IDEN {$$ = makeParentNode("IDENT",makeBaseLeaf($1));}
-		| IDEN arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
+iden_name:	IDENTIFIER {$$ = makeBaseLeaf($1);}
+		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
 		;
 arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;};
 return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
@@ -187,8 +198,8 @@ return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
 int yyerror(const char *msg)
 {
 	fflush(stdout);
-	fprintf(stderr, "Error: %s at line %d\n", msg, yylineno);
-	fprintf(stderr, "Parser does not expect '%s'\n",yytext);
+	fprintf(stderr, "Error: %s at line %d", msg, yylineno);
+	fprintf(stderr, "Parser does not expect '%s'",yytext);
 }
 int main() {
   yyparse();
@@ -200,54 +211,48 @@ Node* makeBaseLeaf(char* token){
 	new_node->data = strdup(token); // so we get a new pointer and not the original
 	return new_node;
 }
-Node* makeParentNode(char* token, Node* one){
+Node* makeParentNode(char* token, Node* left){
 
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->one = one;
+	new_node->left = left;
 	return new_node;
 }
-Node* makePairNode(char* token, Node* one, Node* two){
+Node* makePairNode(char* token, Node* left, Node* right){
 
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->one = one;
-	new_node->two = two;
+	new_node->left = left;
+	new_node->right = right;
 	return new_node;
 }
 
-Node* makeTripNode(char* token, Node* one, Node* two, Node * three){
+Node* makeTripNode(char* token, Node* left, Node* middle, Node * right){
 
 	Node* new_node = (Node*)malloc(sizeof(Node));
 	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->one = one;
-	new_node->two = two;
-	new_node->three = three;
+	new_node->left = left;
+	new_node->middle = middle;
+	new_node->right = right;
 	return new_node;
 }
 
 void printInOrder(Node* tree,int indent)
 {    
-	// printf("add: %p\n",tree);
-	
-	int i;
-    if (tree)
+	if (tree)
     {
-		for (i = 0; i < indent; i++)
+		for (int i = 0; i < indent; i++)
 			printf(" |");
-
     	if (tree->data)
 	    	printf("-> %s\n",tree->data);
-
-		if (tree->one){
-	        printInOrder(tree->one, indent+1);
+		if (tree->left){
+	        printInOrder(tree->left, indent+1);
 		}
-    	if (tree->two){
-			printInOrder(tree->two, indent+1);
+    	if (tree->middle){
+			printInOrder(tree->middle, indent+1);
 		}
-
-		if (tree->three){
-			printInOrder(tree->three, indent+1);
+		if (tree->right){
+			printInOrder(tree->right, indent+1);
 		}
 		
     }

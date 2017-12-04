@@ -53,8 +53,8 @@ D   [0-9]
 
 "true"             return BOOL_TRUE;
 "false"            return BOOL_FALSE;
-'.'                return CHAR_LITERAL; 
-{L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDEN; }
+'.'                { yylval.string = strdup(yytext); return CHAR_LITERAL; } 
+{L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDENTIFIER; }
 \"([^\\\"]|\\.)*\" { yylval.string = strdup(yytext); return STRING_LITERAL; }
 
     /* ints types */
