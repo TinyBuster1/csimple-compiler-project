@@ -6,9 +6,8 @@ D   [0-9]
     #include <stdio.h>
     #include <stdlib.h>
     #include "y.tab.h"
- 	void yyerror(char *);
+ 	int yyerror(char *);
     extern int yyval, yylineno;
-    int getIntValue(char* text, int type);
 %}
 
 /* definitions */
@@ -82,13 +81,4 @@ D   [0-9]
 /* subroutines */
 int yywrap(void) {
     return 1;
-}
-
-int getIntValue(char* text, int type) {
-	if(strlen(text) > 10) {
-		yyerror("integer too long");
-		exit(0);
-	}
-	int value = (int) strtol(yytext, 0, type);
-	return value;
 }
