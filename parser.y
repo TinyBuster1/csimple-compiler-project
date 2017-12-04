@@ -38,7 +38,7 @@
 
 /* TOKENS */
 /* TERMINALS */
-%token <string> CHAR_LITERAL STRING_LITERAL INTEGER VOID NULL_TYPE
+%token <string> CHAR_LITERAL STRING_LITERAL INTEGER NULL_TYPE
 %token <string> IF ELSE FOR WHILE DOWHILE BOOL_TRUE BOOL_FALSE
 %token <string> PLUS MINUS MUL DIV
 %token <string> AND OR EQUAL GT GTE LT LTE NOT NOTEQUAL
@@ -58,7 +58,7 @@
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> arr_index
 %type <Node> expr func_call return_stmt
-%type <Node> cond block block_return stmt
+%type <Node> cond block stmt
 %type <Node> assignment
 %type <Node> code function f_parans
 
@@ -72,28 +72,15 @@ code: code stmt { $$ = makePairNode("MULTI-LINE", $1 ,$2); }
 	| stmt {$$ = $1;}
 		;
 function: 
-		ident_type iden_name O_PAREN parameters C_PAREN block_return { 
+		ident_type iden_name O_PAREN parameters C_PAREN block { 
 				Node * input = makePairNode("INPUT",$2, $4);
 				Node * output = makePairNode("OUTPUT", $1, $6);
 				$$ = makePairNode("FUNCTION", input, output); 
 			}
 		| 
-		ident_type iden_name O_PAREN C_PAREN block_return {
+		ident_type iden_name O_PAREN C_PAREN block {
 				Node * input = makeParentNode("INPUT",$2);
 				Node * output = makePairNode("OUTPUT", $1, $5);
-				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
-			 }
-		
-		|
-		VOID iden_name O_PAREN parameters C_PAREN block { 
-				Node * input = makePairNode("INPUT",$2, $4);
-				Node * output = makeParentNode("OUTPUT", $6);
-				$$ = makePairNode("FUNCTION", input, output); 
-			}
-		| 
-		VOID iden_name O_PAREN C_PAREN block {
-				Node * input = makeParentNode("INPUT",$2);
-				Node * output = makeParentNode("OUTPUT", $5);
 				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
 			 }
 		;
@@ -111,10 +98,6 @@ block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
       | O_CURL C_CURL {$$ = makeBaseLeaf("EMPTY BLOCK");}
       ;
 
-block_return: O_CURL code return_stmt C_CURL {$$ = makePairNode("BLOCK RETURN",$2, $3);}
-			| O_CURL return_stmt C_CURL {$$ = makeParentNode("EMPTY BLOCK RETURN",$2);} 
-      ;
-
 stmt: var_dec { $$ = $1; }
 	| cond { $$ = $1; }
 	| WHILE O_PAREN expr C_PAREN stmt {$$ = makePairNode("WHILE LOOP",$3,$5); }
@@ -125,12 +108,14 @@ stmt: var_dec { $$ = $1; }
 	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
 	| CONTENT iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
 	| function  { $$ = $1; }
+	| func_call SEMICOLON { $$ = $1; }
 	| block { $$ =  $1; }
+	| return_stmt { $$ =  $1; }
 	;
 
 
-assignment: iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
-		|	CONTENT	iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
+		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
 		;
 
 /* int x, char y */
@@ -190,7 +175,9 @@ bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("bool_true"); }
 iden_name:	IDENTIFIER {$$ = makeBaseLeaf($1);}
 		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
 		;
-arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;};
+arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;}
+		| O_BRACK assignment C_BRACK { $$ = $2 ;}
+;
 return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
 ;
 %%
