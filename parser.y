@@ -68,7 +68,7 @@
 %%
 start: code {printInOrder($1, 0);};
 
-code: code stmt { $$ = makePairNode("MULTI-LINE", $2 ,$1); }
+code: code stmt { $$ = makePairNode("MULTI-LINE", $1 ,$2); }
 	| stmt {$$ = $1;}
 		;
 function: 
@@ -242,7 +242,7 @@ void printInOrder(Node* tree,int indent)
 	if (tree)
     {
 		for (int i = 0; i < indent; i++)
-			printf(" |");
+			printf(" ");
     	if (tree->data)
 	    	printf("-> %s\n",tree->data);
 		if (tree->left){

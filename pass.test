@@ -1,4 +1,5 @@
-if (x>y) {
+int main(){
+    if (x>y) {
         x = x + f;
     }
     else {
@@ -6,3 +7,27 @@ if (x>y) {
         x = z + (c + n)*2;
         z = f;
     }
+    return 0;
+}
+
+void func(){
+    if (x>y) {
+        x = x + f;
+    }
+    else {
+        y = x + y + z;
+        x = z + (c + n)*2;
+        z = f;
+    }
+}
+
+void func(int parm, char parm2){
+    if (x>y) {
+        x = x + f;
+    }
+    else {
+        y = x + y + z;
+        x = z + (c + n)*2;
+        z = f;
+    }
+}
