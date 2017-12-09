@@ -1,10 +1,6 @@
-
-lex\.yy\.c
-
 out
-
-y\.output
-
-y\.tab\.c
-
-y\.tab\.h
+*.output
+*.c
+*.h
+*.zip
+*.pdf
