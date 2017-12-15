@@ -179,6 +179,7 @@ arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;}
 		| O_BRACK assignment C_BRACK { $$ = $2 ;}
 ;
 return_stmt: RETURN expr SEMICOLON { $$ = makeParentNode("RETURN",$2);}
+| RETURN SEMICOLON { $$ = makeBaseLeaf("RETURN VOID");}
 ;
 %%
 /* subroutines */
