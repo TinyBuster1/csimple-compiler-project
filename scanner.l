@@ -15,7 +15,7 @@ D   [0-9]
     /* tokens */
     /* COMMENTS */
 "//".*           { /* DO NOTHING */ }
-[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }               
+[/][*][^(*|\/\/)]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }               
     /* TYPES */
 "void"|"boolean"|"char"|"string"|"int"|"intp"|"charp" { yylval.string = strdup(yytext); return TYPE; }
 "null"   { yylval.string = strdup(yytext); return NULL_TYPE; }
@@ -49,16 +49,6 @@ D   [0-9]
 
     /* Literal Lexemes */
 
-"true"             return BOOL_TRUE;
-"false"            return BOOL_FALSE;
-'.'                { yylval.string = strdup(yytext); return CHAR_LITERAL; } 
-{L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDENTIFIER; }
-\"([^\\\"]|\\.)*\" { yylval.string = strdup(yytext); return STRING_LITERAL; }
-
-    /* ints types */
-
-(0|[1-9][0-9]*|0[xX][0-9a-fA-F]+|0[0-7]+|[01]+b)  { yylval.string = strdup(yytext); return INTEGER; }
-
     /* others */
 
 ";" return SEMICOLON; 
@@ -71,6 +61,19 @@ D   [0-9]
 "|" return VERT_LINE; 
 "]" return C_BRACK; 
 "[" return O_BRACK; 
+
+'.'                { yylval.string = strdup(yytext); return CHAR_LITERAL; } 
+
+
+"true"             return BOOL_TRUE;
+"false"            return BOOL_FALSE;
+{L}({L}|{D}|_)*    { yylval.string = strdup(yytext); return IDENTIFIER; }
+\"([^\\\"]|\\.)*\" { yylval.string = strdup(yytext); return STRING_LITERAL; }
+
+
+    /* ints types */
+
+(0|[1-9][0-9]*|0[xX][0-9a-fA-F]+|0[0-7]+|[01]+b)  { yylval.string = strdup(yytext); return INTEGER; }
 
 
 [ \t\f\v]               ; /* ignore blank spaces */
