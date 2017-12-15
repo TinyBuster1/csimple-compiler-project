@@ -2,34 +2,13 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+
+	#include "./libs/ast.h"
+
 	extern int yylex();
 	extern int yylineno;
 	extern char *yytext;
-	// binary tree struct
-	typedef struct Node{
-		char* data;
-		struct Node *left, *middle, *right, *four;
-	} Node;
-	// binary tree code declerations
-	Node* makeBaseLeaf(char*);
-	Node* makeParentNode(char*, Node*);
-	Node* makePairNode(char*, Node*, Node*);
-	Node* makeTripNode(char*, Node*, Node*, Node*);
-	void printInOrder(Node*, int);
 	int yyerror(const char *msg);
-
-
-
-	// HELPER
-	char * indenter(int indent){
-		char * spaces = (char*)malloc(sizeof(char) * (indent + 1));
-
-		for(int i = 0; i < indent; i++)
-			spaces[i] = ' ';
-		spaces[indent] = '\0';
-		return spaces;
-	}
-
 %}
 %union {
   char* string; // node head
@@ -192,56 +171,4 @@ int yyerror(const char *msg)
 int main() {
   yyparse();
   return 0;
-}
-
-Node* makeBaseLeaf(char* token){
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	return new_node;
-}
-Node* makeParentNode(char* token, Node* left){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	return new_node;
-}
-Node* makePairNode(char* token, Node* left, Node* right){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	new_node->right = right;
-	return new_node;
-}
-
-Node* makeTripNode(char* token, Node* left, Node* middle, Node * right){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	new_node->middle = middle;
-	new_node->right = right;
-	return new_node;
-}
-
-void printInOrder(Node* tree,int indent)
-{    
-	if (tree)
-    {
-		for (int i = 0; i < indent; i++)
-			printf(" ");
-    	if (tree->data)
-	    	printf("-> %s\n",tree->data);
-		if (tree->left){
-	        printInOrder(tree->left, indent+1);
-		}
-    	if (tree->middle){
-			printInOrder(tree->middle, indent+1);
-		}
-		if (tree->right){
-			printInOrder(tree->right, indent+1);
-		}
-		
-    }
 }
