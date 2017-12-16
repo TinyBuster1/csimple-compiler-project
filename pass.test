@@ -1,7 +1,9 @@
-int main(){
-    return 0;
+int foo(int x, int y){
+    return x;
 }
 
 int main(){
+    int z;
+    z = foo();
     return 0;
 }
