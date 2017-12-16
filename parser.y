@@ -4,11 +4,15 @@
 	#include <string.h>
 
 	#include "./libs/ast.h"
+	#include "./libs/typecheck.h"
 
 	extern int yylex();
 	extern int yylineno;
 	extern char *yytext;
+	Node * ast;
 	int yyerror(const char *msg);
+
+
 %}
 %union {
   char* string; // node head
@@ -45,7 +49,7 @@
 %nonassoc ELSE
 /* definitions */
 %%
-start: code {printInOrder($1, 0);};
+start: code {ast = $1;};
 
 code: code stmt { $$ = makePairNode("MULTI-LINE", $1 ,$2); }
 	| stmt {$$ = $1;}
@@ -170,5 +174,8 @@ int yyerror(const char *msg)
 }
 int main() {
   yyparse();
+  printInOrder(ast, 0);
+
+  typecheck(ast);
   return 0;
 }
