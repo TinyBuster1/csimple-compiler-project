@@ -5,6 +5,8 @@
 
 	#include "./libs/ast.h"
 	#include "./libs/typecheck.h"
+	#include "./libs/scope-stack.h"
+	#include "./libs/symbol-tab.h"
 
 	extern int yylex();
 	extern int yylineno;
@@ -51,7 +53,7 @@
 %%
 start: code {ast = $1;};
 
-code: code stmt { $$ = makePairNode("MULTI-LINE", $1 ,$2); }
+code: code stmt { $$ = makePairNode("CODE", $1 ,$2); }
 	| stmt {$$ = $1;}
 		;
 function: 
@@ -96,7 +98,6 @@ stmt: var_dec { $$ = $1; }
 	| return_stmt { $$ =  $1; }
 	;
 
-
 assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
 		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
 		;
@@ -127,11 +128,8 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
 	| INTEGER  {$$ = makeBaseLeaf($1);}
 	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
 	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
-	| func_call { $$ = $1; }
-	| O_PAREN expr C_PAREN { $$ = $2; }
 	| IDENTIFIER arr_index {$$ = makeParentNode("ACCESS INDEX",$2);}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
-	| NOT expr { $$ = makeParentNode("!", $2); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
     | expr MUL expr { $$ = makePairNode("*",$1,$3); }
@@ -140,6 +138,8 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
 	| CONTENT expr { $$ = makeParentNode("^",$2); }
 	| ADDRESS expr { $$ = makeParentNode("&",$2); }
 	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
+	| func_call { $$ = $1; }
+	| NOT expr { $$ = makeParentNode("!", $2); }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
@@ -149,6 +149,7 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
     | expr AND expr { $$ = makePairNode("&&",$1,$3); }
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
 	| bool_type { $$ = makeParentNode("boolean", $1); }
+	| O_PAREN expr C_PAREN { $$ = $2; }
 	;
 
 ident_type:	TYPE {$$ = makeBaseLeaf($1);};
@@ -173,9 +174,20 @@ int yyerror(const char *msg)
 	fprintf(stderr, "Parser does not expect '%s'\n",yytext);
 }
 int main() {
-  yyparse();
-  printInOrder(ast, 0);
-
-  typecheck(ast);
-  return 0;
+  	yyparse();
+  	// printInOrder(ast, 0);
+	// printf("\n\n");
+	/*****************************/
+	// CREATE THE SCOPES STACK LIST
+	ScopeStack ** SCOPES_STACK_TOP_PTR = malloc(sizeof(ScopeStack *));
+	// CREATE THE GLOBAL STACK
+	ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
+	GLOBAL->name = "GLOBAL";
+	// SET GLOBAL AS THE BOTTOM OF THE SCOPES_STACK_TOP_PTR
+	// ALL OTHERS STACK WILL USE PUSH FUCNTION
+	push(SCOPES_STACK_TOP_PTR, GLOBAL);
+    
+	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
+	typecheck(SCOPES_STACK_TOP_PTR, ast, 0);
+  	return 0;
 }

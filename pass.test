@@ -1,9 +1,14 @@
-int foo(int x, int y){
-    return x;
+int moo(int x, int y, int z){
+    return (x + y) * z;
 }
 
 int main(){
     int z;
-    z = foo();
+    z = foo(3,5);
+
+    if (3) {
+        z = 7;
+        int x;
+    }
     return 0;
 }
