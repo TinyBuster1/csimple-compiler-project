@@ -5,8 +5,6 @@
 
 	#include "./libs/ast.h"
 	#include "./libs/typecheck.h"
-	#include "./libs/scope-stack.h"
-	#include "./libs/symbol-tab.h"
 
 	extern int yylex();
 	extern int yylineno;
