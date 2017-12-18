@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./typecheck.h"
-int typecheck(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast, int depth)
+void typecheck(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast, int depth)
 {
     if (!ast->left)
         printf("Leaf(Depth: %d): %s\n", depth, ast->data);
@@ -33,8 +33,6 @@ int typecheck(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast, int depth)
     {
         pop(SCOPES_STACK_TOP_PTR);
     }
-
-    return 1;
 }
 
 void scopeHandler(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast)

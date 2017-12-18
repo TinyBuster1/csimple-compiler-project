@@ -5,10 +5,5 @@ int moo(int x, int y, int z){
 int main(){
     int z;
     z = foo(3,5);
-
-    if (3) {
-        z = 7;
-        int x;
-    }
     return 0;
 }
