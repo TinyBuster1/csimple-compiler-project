@@ -2,5 +2,6 @@
 #define TYPECHECK_H_
 #include "./ast.h"
 #include "./symtab-scope.h"
-void createGlobal();
+void typecheck(ScopeStack **, Node *, int);
+void scopeHandler(ScopeStack **, Node *);
 #endif
