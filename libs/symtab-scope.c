@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "./symtab-scope.h"
 
 /**
@@ -20,7 +21,7 @@ SymbEntry *search(ScopeStack **SCOPES_STACK_TOP_PTR, char *name)
         symb_walker = scope_walker->table_ptr;
         while (symb_walker)
         {
-            if (stcmp(name, symb_walker->name) == 0)
+            if (strcmp(name, symb_walker->name) == 0)
                 return symb_walker;
             symb_walker = symb_walker->nextEntry;
         }
