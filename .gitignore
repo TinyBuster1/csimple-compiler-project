@@ -1,9 +1,8 @@
 out
 *.output
-*.h
 *.zip
 *.pdf
 
 lex\.yy\.c
 
-y\.tab\.c
+y\.tab\.*
