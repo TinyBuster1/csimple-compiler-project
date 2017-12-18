@@ -9,23 +9,7 @@ int typecheck(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast, int depth)
     else
         printf("Type Checking of HEAD Node(Depth: %d): %s\n", depth, ast->data);
 
-    if (strcmp("FUNCTION", ast->data) == 0 || strcmp("FUNCTION NO PARAMS", ast->data) == 0)
-    {
-        char *scopeName = ast->left->left->data;
-        printf("##SCOPE OF: %s\n", scopeName);
-        // create a new scope
-        ScopeStack *newScope = malloc(sizeof(ScopeStack));
-        newScope->name = scopeName;
-        push(SCOPES_STACK_TOP_PTR, newScope);
-    }
-
-    if (strcmp("PARAM", ast->data) == 0 || strcmp("VARIABLES DECLERATION", ast->data) == 0)
-    {
-        char *var_name = ast->right->data;
-        SymbEntry *newEntery = malloc(sizeof(SymbEntry));
-        newEntery->name = var_name;
-        insert(*SCOPES_STACK_TOP_PTR, newEntery);
-    }
+    scopeHandler(SCOPES_STACK_TOP_PTR, ast);
 
     if (ast->left)
     {
@@ -44,10 +28,32 @@ int typecheck(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast, int depth)
     }
 
     // AFTER WE FINISHED PROC THE SUB NODES
+
     if (strcmp("FUNCTION", ast->data) == 0 || strcmp("FUNCTION NO PARAMS", ast->data) == 0)
     {
         pop(SCOPES_STACK_TOP_PTR);
     }
 
     return 1;
+}
+
+void scopeHandler(ScopeStack **SCOPES_STACK_TOP_PTR, Node *ast)
+{
+    if (strcmp("FUNCTION", ast->data) == 0 || strcmp("FUNCTION NO PARAMS", ast->data) == 0)
+    {
+        char *scopeName = ast->left->left->data;
+        printf("##SCOPE OF: %s\n", scopeName);
+        // create a new scope
+        ScopeStack *newScope = malloc(sizeof(ScopeStack));
+        newScope->name = scopeName;
+        push(SCOPES_STACK_TOP_PTR, newScope);
+    }
+
+    if (strcmp("PARAM", ast->data) == 0 || strcmp("VARIABLES DECLERATION", ast->data) == 0)
+    {
+        char *var_name = ast->right->data;
+        SymbEntry *newEntery = malloc(sizeof(SymbEntry));
+        newEntery->name = var_name;
+        insert(*SCOPES_STACK_TOP_PTR, newEntery);
+    }
 }
