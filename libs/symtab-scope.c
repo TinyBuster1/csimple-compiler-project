@@ -12,10 +12,10 @@
  * return NULL if no result found
  * 
  */
-SymbEntry *search(ScopeStack **SCOPES_STACK_TOP_PTR, char *name)
+SymbEntry *search(ScopeStack **currentScope, char *name)
 {
     SymbEntry *symb_walker;
-    ScopeStack *scope_walker = *SCOPES_STACK_TOP_PTR;
+    ScopeStack *scope_walker = *currentScope;
     while (scope_walker)
     {
         symb_walker = scope_walker->table_ptr;
@@ -50,13 +50,13 @@ void printTable(char *SCOPE_NAME, SymbEntry *head)
 /**
  * inserts a new symbol to the current top scope in the stack
  */
-void insert(ScopeStack *SCOPES_STACK_TOP_PTR, SymbEntry *newEntry)
+void insert(ScopeStack *currentScope, SymbEntry *newEntry)
 {
-    printf("\nINSERT: %s into SCOPE: %s\n", newEntry->name, SCOPES_STACK_TOP_PTR->name);
-    SymbEntry *walker = SCOPES_STACK_TOP_PTR->table_ptr;
+    printf("\nINSERT: %s into SCOPE: %s\n", newEntry->name, currentScope->name);
+    SymbEntry *walker = currentScope->table_ptr;
     // if symbol table is empty
     if (!walker)
-        SCOPES_STACK_TOP_PTR->table_ptr = newEntry;
+        currentScope->table_ptr = newEntry;
     // printf("\n####  %s  ####\n", newEntry->name);
 
     else
@@ -65,12 +65,12 @@ void insert(ScopeStack *SCOPES_STACK_TOP_PTR, SymbEntry *newEntry)
             walker = walker->nextEntry;
         walker->nextEntry = newEntry;
     }
-    printTable(SCOPES_STACK_TOP_PTR->name, SCOPES_STACK_TOP_PTR->table_ptr);
+    printTable(currentScope->name, currentScope->table_ptr);
 }
 
-void printStack(ScopeStack **SCOPES_STACK_TOP_PTR)
+void printStack(ScopeStack **currentScope)
 {
-    ScopeStack *walker = *SCOPES_STACK_TOP_PTR;
+    ScopeStack *walker = *currentScope;
 
     printf("---------\nCurrent Scopes Stack\n");
     printf("%-15s%-15s%-15s%-15s%-15s\n", "NAME", "|", "ADDRESS", "|", "POINTS TO");
@@ -88,26 +88,26 @@ void printStack(ScopeStack **SCOPES_STACK_TOP_PTR)
 /** 
  * inserts a new scope to the stack
  */
-void push(ScopeStack **SCOPES_STACK_TOP_PTR, ScopeStack *new_scope)
+void push(ScopeStack **currentScope, ScopeStack *newScope)
 {
-    printf("\nPUSH: %s\n", new_scope->name);
+    printf("\nPUSH: %s\n", newScope->name);
     // first, make the new scope point to the current top scope
-    new_scope->next_scope = *SCOPES_STACK_TOP_PTR;
-    // now move the SCOPES_STACK_TOP_PTR top the new scope
-    *SCOPES_STACK_TOP_PTR = new_scope;
-    printStack(SCOPES_STACK_TOP_PTR);
+    newScope->next_scope = *currentScope;
+    // now move the currentScope top the new scope
+    *currentScope = newScope;
+    printStack(currentScope);
 }
 
-void pop(ScopeStack **SCOPES_STACK_TOP_PTR)
+void pop(ScopeStack **currentScope)
 {
-    printf("\nPOP: %s\n", (*SCOPES_STACK_TOP_PTR)->name);
+    printf("\nPOP: %s\n", (*currentScope)->name);
     // free the symbole table of the current top
-    // free((*SCOPES_STACK_TOP_PTR)->table_ptr);
+    // free((*currentScope)->table_ptr);
     // save a tmp to free after moving the head 1 down
-    ScopeStack *ptr = *SCOPES_STACK_TOP_PTR;
+    ScopeStack *ptr = *currentScope;
     // move the head 1 down
-    *SCOPES_STACK_TOP_PTR = (*SCOPES_STACK_TOP_PTR)->next_scope;
+    *currentScope = (*currentScope)->next_scope;
     // free the poped head
     // free(ptr);
-    printStack(SCOPES_STACK_TOP_PTR);
+    printStack(currentScope);
 }

@@ -173,18 +173,18 @@ int yyerror(const char *msg)
 }
 int main() {
   	yyparse();
-  	// printInOrder(ast, 0);
-	// printf("\n\n");
+  	printInOrder(ast, 0);
+	printf("\n\n");
 	/*****************************/
 	// CREATE THE SCOPES STACK LIST
-	ScopeStack ** SCOPES_STACK_TOP_PTR = malloc(sizeof(ScopeStack *));
-	// CREATE THE GLOBAL STACK
-	ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
-	GLOBAL->name = "GLOBAL";
-	// SET GLOBAL AS THE BOTTOM OF THE SCOPES_STACK_TOP_PTR
-	// ALL OTHERS STACK WILL USE PUSH FUCNTION
-	push(SCOPES_STACK_TOP_PTR, GLOBAL);
+	// ScopeStack ** currentScope = malloc(sizeof(ScopeStack *));
+	// // CREATE THE GLOBAL STACK
+	// ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
+	// GLOBAL->name = "GLOBAL";
+	// // SET GLOBAL AS THE BOTTOM OF THE currentScope
+	// // ALL OTHERS STACK WILL USE PUSH FUCNTION
+	// push(currentScope, GLOBAL);
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	typecheck(SCOPES_STACK_TOP_PTR, ast, 0);
+	// typecheck(currentScope, ast, 0);
   	return 0;
 }

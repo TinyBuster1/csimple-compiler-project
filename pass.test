@@ -1,9 +1,3 @@
-int moo(int x, int y, int z){
-    return (x + y) * z;
-}
-
-int main(){
-    int z;
-    z = foo(3,5);
-    return 0;
+int main(int x){
+    char y; 
 }
