@@ -56,15 +56,15 @@ code: code stmt { $$ = makePairNode("CODE", $1 ,$2); }
 		;
 function: 
 		ident_type iden_name O_PAREN parameters C_PAREN block { 
-				Node * input = makePairNode("INPUT",$2, $4);
-				Node * output = makePairNode("OUTPUT", $1, $6);
-				$$ = makePairNode("FUNCTION", input, output); 
+				Node * left = makeTripNode("FUNCTION INFO", $1, $2, $4 );
+				Node * right = $6;
+				$$ = makePairNode("FUNCTION", left, right ); 
 			}
 		| 
 		ident_type iden_name O_PAREN C_PAREN block {
-				Node * input = makeParentNode("INPUT",$2);
-				Node * output = makePairNode("OUTPUT", $1, $5);
-				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
+				Node * left = makeTripNode("FUNCTION INFO", $1, $2, NULL );
+				Node * right = $5;
+				$$ = makePairNode("FUNCTION", left, right );  
 			 }
 		;
 
@@ -177,14 +177,14 @@ int main() {
 	printf("\n\n");
 	/*****************************/
 	// CREATE THE SCOPES STACK LIST
-	// ScopeStack ** currentScope = malloc(sizeof(ScopeStack *));
-	// // CREATE THE GLOBAL STACK
-	// ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
-	// GLOBAL->name = "GLOBAL";
-	// // SET GLOBAL AS THE BOTTOM OF THE currentScope
-	// // ALL OTHERS STACK WILL USE PUSH FUCNTION
-	// push(currentScope, GLOBAL);
+	ScopeStack ** currentScope = malloc(sizeof(ScopeStack *));
+	// CREATE THE GLOBAL STACK
+	ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
+	GLOBAL->name = "GLOBAL";
+	// SET GLOBAL AS THE BOTTOM OF THE currentScope
+	// ALL OTHERS STACK WILL USE PUSH FUCNTION
+	push(currentScope, GLOBAL);
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	// typecheck(currentScope, ast, 0);
+	typecheck(currentScope, ast);
   	return 0;
 }

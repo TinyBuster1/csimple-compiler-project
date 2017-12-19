@@ -1,3 +1,5 @@
-int main(int x){
+int main4(int x, int y){
     char y; 
 }
+
+int z;

@@ -2,5 +2,5 @@
 #define TYPECHECK_H_
 #include "./ast.h"
 #include "./symtab-scope.h"
-void typecheck(ScopeStack **, Node *, int);
+void typecheck(ScopeStack **, Node *);
 #endif
