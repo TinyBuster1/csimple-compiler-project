@@ -3,5 +3,4 @@
 #include "./ast.h"
 #include "./symtab-scope.h"
 void typecheck(ScopeStack **, Node *, int);
-void scopeHandler(ScopeStack **, Node *);
 #endif
