@@ -1,5 +1,5 @@
-int main4(int x, int y){
-    char y; 
-}
+int main4(int x, int y, string c){
+    char y,z;
+    int x;
+   }
 
-int z;

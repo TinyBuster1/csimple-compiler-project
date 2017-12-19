@@ -13,20 +13,21 @@ typedef enum type {
 
 typedef struct args
 {
-    type type;         // arg type
+    char * name;
+    char * type;         // arg type
     struct args *next; // next arg in list
 } args;
 
 typedef struct function
 {
     struct args *args; // function args
-    type r_value;      // return type
+    char * r_value;      // return type
 } function;
 
 typedef struct SymbEntry
 {
     char *name;                  // symbol name
-    type var_type;               // if it's a var
+    char * var_type;               // if it's a var
     struct function *data;       // if it's a func
     struct SymbEntry *nextEntry; // next Entry in "table"
 } SymbEntry;

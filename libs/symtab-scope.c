@@ -35,13 +35,13 @@ void printTable(char *SCOPE_NAME, SymbEntry *head)
 {
     SymbEntry *walker = head;
     printf("\n---------\nSYMBOL TABLE OF SCOPE: %s\n", SCOPE_NAME);
-    printf("%-15s%-15s%-15s%-15s%-15s\n", "NAME", "|", "ADDRESS", "|", "POINTS TO");
+    printf("%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n", "NAME", "|", "TYPE", "|", "DATA", "|", "POINTS TO");
     do
     {
         if (walker->nextEntry)
-            printf("%-15s%-15s%-15p%-15s%-15s\n", walker->name, "|", walker, "|", walker->nextEntry->name);
-        else
-            printf("%-15s%-15s%-15p%-15s%-15s\n", walker->name, "|", walker, "|", "NULL");
+            printf("%-15s%-15s%-15s%-15s%-15p%-15s%-15s\n", walker->name, "|", walker->var_type, "|",walker->data, "|", walker->nextEntry->name);
+        else{
+            printf("%-15s%-15s%-15s%-15s%-15p%-15s%-15s\n", walker->name, "|", walker->var_type, "|",walker->data, "|", "NULL");}
         walker = walker->nextEntry;
     } while (walker);
     printf("---------\n\n");
@@ -72,8 +72,8 @@ void printStack(ScopeStack **currentScope)
 {
     ScopeStack *walker = *currentScope;
 
-    printf("---------\nCurrent Scopes Stack\n");
-    printf("%-15s%-15s%-15s%-15s%-15s\n", "NAME", "|", "ADDRESS", "|", "POINTS TO");
+    printf("---------\n\nCurrent Scopes Stack\n");
+    printf("%-15s%-15s%-15s%-15s%-15s\n", "NAME", "|", "ADDRESS", "|", "POINTS TO\n");
     do
     {
         if (walker->next_scope)
@@ -110,4 +110,5 @@ void pop(ScopeStack **currentScope)
     // free the poped head
     // free(ptr);
     printStack(currentScope);
+    
 }
