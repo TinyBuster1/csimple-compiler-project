@@ -1,4 +1,4 @@
-int main4(int x, int y, string c){
+int main4(int a, int b, string c){
     char y,z;
     int x;
    }
