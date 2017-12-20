@@ -186,5 +186,6 @@ int main() {
 	push(currentScope, GLOBAL);
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
 	typecheck(currentScope, ast);
+	pop(currentScope);
   	return 0;
 }

@@ -56,4 +56,6 @@ void printInOrder(Node *tree, int indent)
             printInOrder(tree->right, indent + 1);
         }
     }
+    else
+        printf("Null Tree\n");
 }

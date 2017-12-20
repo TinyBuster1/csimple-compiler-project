@@ -1,5 +1,5 @@
-int main4(int a, int b, string c){
-    char y,z;
-    int x;
-   }
-
+int main(int a)
+{
+    int func1(){}
+    string func1(){}
+}

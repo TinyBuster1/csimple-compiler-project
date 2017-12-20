@@ -4,22 +4,30 @@
 #include "./typecheck.h"
 #include "./ast.h"
 
+// single main function flag
+bool mainflag = false;
+
 void createScope(ScopeStack **currentScope, char *name)
 {
-    printf("##SCOPE OF: %s\n", name);
+    // printf("##SCOPE OF: %s\n", name);
     // create a new scope
     ScopeStack *newScope = malloc(sizeof(ScopeStack));
     newScope->name = name;
     push(currentScope, newScope);
 }
 
-void insertVar(ScopeStack **currentScope, char *type, char *name)
+bool insertVar(ScopeStack **currentScope, char *type, char *name)
 {
     // we still need to type check
-    SymbEntry *newEntry = malloc(sizeof(SymbEntry));
-    newEntry->var_type = type;
-    newEntry->name = name;
-    insert(*currentScope, newEntry);
+    if (!searchScope(currentScope, name))
+    {
+        SymbEntry *newEntry = malloc(sizeof(SymbEntry));
+        newEntry->var_type = type;
+        newEntry->name = name;
+        insert(*currentScope, newEntry);
+        return true;
+    }
+    return false;
 }
 
 void handleMultiVarsDecl(ScopeStack **currentScope, char *type, Node *ids)
@@ -59,6 +67,8 @@ void printArgsList(args *list)
 
 args *getFuncArgs(Node *ast)
 {
+    if (!ast)
+        return NULL;
     args *argument = malloc(sizeof(args));
     if (strcmp("PARAMETERS", ast->data) == 0)
     {
@@ -74,9 +84,22 @@ args *getFuncArgs(Node *ast)
     return argument;
 }
 
-void handleFunctionInfo(ScopeStack **currentScope, Node *ast)
+bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
 {
     char *name = ast->middle->data;
+    // single main functino validation
+    if (strcmp("main", name) == 0)
+    {
+        if (mainflag)
+        {
+            fprintf(stderr, "multiple definition of `main' was found\n");
+            return false;
+        }
+        mainflag = true;
+    }
+
+    // creating scope for function args
+    createScope(currentScope, ast->data);
     function *data = malloc(sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
@@ -90,11 +113,13 @@ void handleFunctionInfo(ScopeStack **currentScope, Node *ast)
     }
 
     // push function data into upper scope for future search and validation
-    // we do that only after we validate the function itself!
+    // we do that only after we validate the function block!
     SymbEntry *newEntry = malloc(sizeof(SymbEntry));
     newEntry->name = name;
     newEntry->data = data;
     insert((*currentScope)->next_scope, newEntry);
+
+    return true;
 }
 
 void typecheck(ScopeStack **currentScope, Node *ast)
@@ -110,10 +135,11 @@ void typecheck(ScopeStack **currentScope, Node *ast)
 
     else if (strcmp("FUNCTION", ast->data) == 0)
     {
-
-        createScope(currentScope, ast->data);
-        handleFunctionInfo(currentScope, ast->left);
-        typecheck(currentScope, ast->right);
+        if (!searchScope(currentScope, ast->left->middle->data) && handleFunctionInfo(currentScope, ast->left))
+        {
+            typecheck(currentScope, ast->right);
+            pop(currentScope); // pop function scope
+        }
     }
 
     else if (strcmp("BLOCK", ast->data) == 0)
@@ -121,6 +147,7 @@ void typecheck(ScopeStack **currentScope, Node *ast)
         createScope(currentScope, ast->data);
         typecheck(currentScope, ast->left);
         typecheck(currentScope, ast->right);
+        pop(currentScope); // pop block scope
     }
 
     ////////////////////////////////////////////
