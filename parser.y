@@ -71,10 +71,10 @@ function:
 
 f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
 		| expr {$$ = $1;}
+		| {$$ = makeBaseLeaf("Empty Func call");}
 		;
 
 func_call: iden_name O_PAREN f_parans C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
-		| iden_name O_PAREN C_PAREN {$$ = makeParentNode("FUNCTION CALL NO PARAMS", $1);}
 		;
 
 block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
@@ -88,16 +88,14 @@ stmt: var_dec { $$ = $1; }
 	| FOR O_PAREN assignment SEMICOLON expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
-	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
-	| CONTENT iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+	| assignment { $$ = $1; }
+	| expr SEMICOLON{ $$ = $1; }
 	| function  { $$ = $1; }
-	| func_call SEMICOLON { $$ = $1; }
 	| block { $$ =  $1; }
 	| return_stmt { $$ =  $1; }
 	;
 
-assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
-		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+assignment: expr ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
 		;
 
 /* int x, char y */
@@ -127,7 +125,7 @@ expr: expr_node { $$ = makeParentNode("EXPR", $1);};
 expr_node: iden_name {$$ = $1;}
 	| func_call { $$ = $1; }
 	| O_PAREN expr C_PAREN { $$ = $2; }
-	| INTEGER  {$$ = makeBaseLeaf($1);}
+	| INTEGER  {$$ = makeParentNode("INTEGER", makeBaseLeaf($1));}
 	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
 	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
@@ -156,8 +154,8 @@ ident_type:	TYPE {$$ = makeBaseLeaf($1);};
 bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("bool_true"); }
           | BOOL_FALSE { $$ = makeBaseLeaf("bool_false"); }
 		  ;
-iden_name:	IDENTIFIER {$$ = makeBaseLeaf($1);}
-		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
+iden_name:	IDENTIFIER {$$ = makeParentNode("IDENT", makeBaseLeaf($1));}
+		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeParentNode("IDENT", makeBaseLeaf($1)), $2);}
 		;
 arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;}
 		| O_BRACK assignment C_BRACK { $$ = $2 ;}
@@ -178,10 +176,8 @@ int main() {
 	printInOrder(ast, 0);
 	printf("\n\n");
 	/*****************************/
-	// CREATE THE SCOPES STACK LIST
-	ScopeStack ** currentScope = malloc(sizeof(ScopeStack *));
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	typecheck(currentScope, ast);
+	typecheck(ast);
 	
   	return 0;
 }

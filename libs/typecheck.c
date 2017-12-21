@@ -6,8 +6,11 @@
 
 // single main function flag
 bool MAIN_FLAG = false;
+/*****************************/
+// CREATE THE SCOPES STACK LIST
+ScopeStack **currentScope;
 
-void createScope(ScopeStack **currentScope, char *name)
+void createScope(char *name)
 {
     // printf("##SCOPE OF: %s\n", name);
     // create a new scope
@@ -16,9 +19,8 @@ void createScope(ScopeStack **currentScope, char *name)
     push(currentScope, newScope);
 }
 
-bool insertVar(ScopeStack **currentScope, char *type, char *name)
+bool insertVar(char *type, char *name)
 {
-    // we still need to type check
     if (!searchScope(currentScope, name))
     {
         SymbEntry *newEntry = malloc(sizeof(SymbEntry));
@@ -30,29 +32,34 @@ bool insertVar(ScopeStack **currentScope, char *type, char *name)
     return false;
 }
 
-void handleMultiVarsDecl(ScopeStack **currentScope, char *type, Node *ids)
+void handleMultiVarsDecl(char *type, Node *ids)
 {
     if (strcmp("MULTIPLE IDENTIFIERS", ids->left->data) == 0)
-        handleMultiVarsDecl(currentScope, type, ids->left);
+    {
+        handleMultiVarsDecl(type, ids->left);
+        insertVar(type, ids->right->left->data);
+    }
     else
     {
-        // we still need to type check
-        insertVar(currentScope, type, ids->left->data);
-        insertVar(currentScope, type, ids->right->data);
+        insertVar(type, ids->left->left->data);
+        insertVar(type, ids->right->left->data);
     }
 }
 
-void handleVarDecl(ScopeStack **currentScope, Node *ast)
+void handleVarDecl(Node *ast)
 {
+
     char *type = ast->left->data;
+    if (strcmp("void", type) == 0)
+    {
+        fprintf(stderr, "varialbes of type 'void' can not be declered\n");
+        return;
+    }
     Node *ids = ast->right;
     if (strcmp("MULTIPLE IDENTIFIERS", ids->data) == 0)
-        handleMultiVarsDecl(currentScope, type, ids);
+        handleMultiVarsDecl(type, ids);
     else
-    {
-        // we still need to type check
-        insertVar(currentScope, type, ids->data);
-    }
+        insertVar(type, ids->left->data);
 }
 
 void printArgsList(args *list)
@@ -83,7 +90,7 @@ args *getFuncArgs(Node *ast)
     return argument;
 }
 
-bool validateMain(ScopeStack **currentScope, function *data)
+bool validateMain(function *data)
 {
     if (MAIN_FLAG)
     {
@@ -106,23 +113,23 @@ bool validateMain(ScopeStack **currentScope, function *data)
     return true;
 }
 
-bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
+bool handleFunctionInfo(Node *ast)
 {
-    char *name = ast->middle->data;
+    char *name = ast->middle->left->data;
     function *data = malloc(sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
 
-    if (strcmp("main", name) == 0 && !validateMain(currentScope, data))
+    if (strcmp("main", name) == 0 && !validateMain(data))
         return false;
 
     // creating scope for function args
-    createScope(currentScope, ast->data);
+    createScope(ast->data);
     // push function arguments into args scope
     args *runner = data->args;
     while (runner)
     {
-        insertVar(currentScope, runner->type, runner->name);
+        insertVar(runner->type, runner->name);
         runner = runner->next;
     }
 
@@ -136,48 +143,185 @@ bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
     return true;
 }
 
-type getType(Node *expr)
+bool validateSameType(Node *ast)
 {
-    if (expr->left->data == "EXPR")
-        return getType(expr->left);
+    printInOrder(ast, 0);
+    printf("T1:%s\n", typeToChar(getType(ast->left)));
+    printf("T1:%s\n", typeToChar(getType(ast->right)));
+    if (getType(ast->left) != getType(ast->right))
+    {
+        fprintf(stderr, "Different types were found on '%s'\n", ast->data);
+        return false;
+    }
+    return true;
+}
 
-    if (expr->left->data == "boolean")
+type charToType(char *type)
+{
+    if (strcmp(type, "int") == 0)
+        return INTEGER;
+
+    if (strcmp(type, "boolean") == 0)
         return BOOLEAN;
 
-    else
+    if (strcmp(type, "char") == 0)
+        return CHAR;
+
+    if (strcmp(type, "string") == 0)
+        return STRING;
+
+    if (strcmp(type, "intp") == 0)
+        return INT_PTR;
+
+    if (strcmp(type, "charp") == 0)
+        return CHAR_PTR;
+
+    if (strcmp(type, "void") == 0)
+        return VOID;
+
+    return -1;
+}
+
+char *typeToChar(type t)
+{
+    if (t == INTEGER)
+        return "int";
+
+    if (t == CHAR)
+        return "char";
+
+    if (t == BOOLEAN)
+        return "boolean";
+
+    if (t == STRING)
+        return "string";
+
+    if (t == INT_PTR)
+        return "intp";
+
+    if (t == CHAR_PTR)
+        return "charp";
+
+    if (t == VOID)
+        return "void";
+
+    return "undefined";
+}
+
+type getType(Node *expr)
+{
+    printInOrder(expr, 0);
+    if (strcmp(expr->left->data, "EXPR") == 0)
+        return handleExpr(expr->left);
+
+    if (strcmp(expr->left->data, "boolean") == 0)
+        return BOOLEAN;
+
+    if (strcmp(expr->left->data, "INTEGER") == 0)
         return INTEGER;
+
+    if (strcmp(expr->left->data, "IDENT") == 0)
+    {
+        SymbEntry *entry = find(currentScope, expr->left->left->data);
+        if (!entry)
+        {
+            fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
+            return -1;
+        }
+        printf("TYPE of %s: %s\n", entry->name, entry->var_type);
+        return charToType(entry->var_type);
+    }
+
+    if (strcmp(expr->left->data, "ARRAY ACCESS") == 0)
+    {
+        SymbEntry *entry = find(currentScope, expr->left->left->data);
+        if (!entry)
+            fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
+        return CHAR;
+    }
+
+    else
+        return -1;
 }
 
-void validateSameType(Node *left, Node *right)
+bool validateIsInt(Node *ast)
 {
-    if (getType(left) != getType(right))
-        fprintf(stderr, "Different types where found on '=='\n");
+    if (getType(ast->left) != INTEGER)
+        fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+    if (getType(ast->right) != INTEGER)
+    {
+        fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+        return false;
+    }
+    return true;
 }
 
-void handleExpr(ScopeStack **currentScope, Node *ast)
+bool validateIsPtr(Node *left)
 {
+    if (getType(left) == INT_PTR || getType(left) == CHAR_PTR)
+        return true;
+    fprintf(stderr, "Bad type found on '^'\n");
+    return false;
+}
+
+bool validateIsSimple(Node *left)
+{
+    if (getType(left) == INTEGER || getType(left) == CHAR)
+        return true;
+    fprintf(stderr, "Bad type found on '&'\n");
+    return false;
+}
+
+type handleExpr(Node *ast)
+{
+
     if (strcmp("EXPR", ast->data) == 0)
-        handleExpr(currentScope, ast->left);
+        return handleExpr(ast->left);
     // same on 2 sides
-    else if (strcmp(ast->data, "==") == 0)
-        validateSameType(ast->left, ast->right);
+    else if (strcmp(ast->data, "==") == 0 && validateSameType(ast))
+        return BOOLEAN;
+
+    else if (strcmp(ast->data, "*") == 0 && validateIsInt(ast))
+        return INTEGER;
+
+    else if (strcmp(ast->data, "/") == 0 && validateIsInt(ast))
+        return INTEGER;
+
+    else if (strcmp(ast->data, "-") == 0 && validateIsInt(ast))
+        return INTEGER;
+
+    else if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
+        return INTEGER;
+
+    else if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left))
+        return getType(ast->left);
+
+    else if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
+        return getType(ast->left);
+
+    return -1;
 }
 
-void typecheck(ScopeStack **currentScope, Node *ast)
+void handleAssigment(Node *ast)
+{
+    printInOrder(ast, 0);
+}
+
+type typecheck(Node *ast)
 {
     if (!ast)
-        return;
+        return -1;
 
     // Program start
     if (strcmp("PROGRAM", ast->data) == 0)
     {
-        /*****************************/
-        // CREATE THE SCOPES STACK LIST
+
+        currentScope = malloc(sizeof(ScopeStack));
         ScopeStack *newScope = malloc(sizeof(ScopeStack));
         newScope->name = "GLOBAL";
         push(currentScope, newScope);
-        typecheck(currentScope, ast->left);
-        typecheck(currentScope, ast->right);
+        typecheck(ast->left);
+        typecheck(ast->right);
 
         if (!find(currentScope, "main"))
             fprintf(stderr, "'main' was not found!\n");
@@ -186,33 +330,43 @@ void typecheck(ScopeStack **currentScope, Node *ast)
 
     else if (strcmp("CODE", ast->data) == 0)
     {
-        typecheck(currentScope, ast->left);
-        typecheck(currentScope, ast->right);
+        typecheck(ast->left);
+        typecheck(ast->right);
     }
 
     else if (strcmp("FUNCTION", ast->data) == 0)
     {
-        if (!searchScope(currentScope, ast->left->middle->data) && handleFunctionInfo(currentScope, ast->left))
+        if (!searchScope(currentScope, ast->left->middle->data) && handleFunctionInfo(ast->left))
         {
-            typecheck(currentScope, ast->right);
+            typecheck(ast->right);
             pop(currentScope); // pop function scope
         }
     }
 
     else if (strcmp("BLOCK", ast->data) == 0)
     {
-        createScope(currentScope, ast->data);
-        typecheck(currentScope, ast->left);
-        typecheck(currentScope, ast->right);
+        createScope(ast->data);
+        typecheck(ast->left);
+        typecheck(ast->right);
         pop(currentScope); // pop block scope
     }
 
     ////////////////////////////////////////////
     /* STOP REC */
 
+    else if (strcmp("=", ast->data) == 0)
+        validateSameType(ast);
+
+    else if (strcmp("IF", ast->data) == 0)
+    {
+        if (typecheck(ast->left) != BOOLEAN)
+            fprintf(stderr, "Bad type found on 'if' statement\n");
+        typecheck(ast->right);
+    }
+
     else if (strcmp("VARIABLES DECLERATION", ast->data) == 0)
-        handleVarDecl(currentScope, ast);
+        handleVarDecl(ast);
 
     else if (strcmp("EXPR", ast->data) == 0)
-        handleExpr(currentScope, ast->left);
+        return handleExpr(ast->left);
 }

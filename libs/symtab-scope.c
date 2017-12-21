@@ -11,7 +11,7 @@ bool searchScope(ScopeStack **currentScope, char *name)
     {
         if (strcmp(name, symb_walker->name) == 0)
         {
-            fprintf(stderr, "previous declaration of ‘%s’ was found\n", name);
+            fprintf(stderr, "previous declaration of ‘%s’ was found in this scope!\n", name);
             return true;
         }
         symb_walker = symb_walker->nextEntry;
@@ -75,7 +75,7 @@ void printTable(char *SCOPE_NAME, SymbEntry *head)
  */
 void insert(ScopeStack *currentScope, SymbEntry *newEntry)
 {
-    printf("INSERT: '%s' into symbol table of '%s'\n", newEntry->name, currentScope->name);
+    // printf("INSERT: '%s' into symbol table of '%s'\n", newEntry->name, currentScope->name);
     SymbEntry *walker = currentScope->table_ptr;
     // if symbol table is empty
     if (!walker)
@@ -116,7 +116,7 @@ void printStack(ScopeStack **currentScope)
  */
 void push(ScopeStack **currentScope, ScopeStack *newScope)
 {
-    printf("PUSH: '%s'\n", newScope->name);
+    // printf("PUSH: '%s'\n", newScope->name);
     // first, make the new scope point to the current top scope
     newScope->next_scope = *currentScope;
     // now move the currentScope top the new scope
@@ -126,7 +126,7 @@ void push(ScopeStack **currentScope, ScopeStack *newScope)
 
 void pop(ScopeStack **currentScope)
 {
-    printf("POP: '%s'\n", (*currentScope)->name);
+    // printf("POP: '%s'\n", (*currentScope)->name);
     // free the symbole table of the current top
     free((*currentScope)->table_ptr);
     // save a tmp to free after moving the head 1 down

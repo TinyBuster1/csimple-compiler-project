@@ -2,5 +2,10 @@
 #define TYPECHECK_H_
 #include "./ast.h"
 #include "./symtab-scope.h"
-void typecheck(ScopeStack **, Node *);
+type typecheck(Node *);
+type handleExpr(Node *);
+type getType(Node *);
+bool validateSameType(Node *);
+type charToType(char *);
+char *typeToChar(type);
 #endif
