@@ -71,10 +71,10 @@ function:
 
 f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
 		| expr {$$ = $1;}
-		| {$$ = makeBaseLeaf("Empty Func call");}
 		;
 
 func_call: iden_name O_PAREN f_parans C_PAREN {$$ = makePairNode("FUNCTION CALL", $1, $3);}
+		| iden_name O_PAREN C_PAREN {$$ = makeParentNode("FUNCTION CALL NO PARAMS", $1);}
 		;
 
 block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
@@ -88,14 +88,16 @@ stmt: var_dec { $$ = $1; }
 	| FOR O_PAREN assignment SEMICOLON expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
-	| assignment { $$ = $1; }
-	| expr SEMICOLON{ $$ = $1; }
+	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
+	| CONTENT iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
 	| function  { $$ = $1; }
+	| func_call SEMICOLON { $$ = $1; }
 	| block { $$ =  $1; }
 	| return_stmt { $$ =  $1; }
 	;
 
-assignment: expr ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
+assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
+		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
 		;
 
 /* int x, char y */
