@@ -40,7 +40,7 @@
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> arr_index
-%type <Node> expr func_call return_stmt
+%type <Node> expr expr_node func_call return_stmt
 %type <Node> cond block stmt
 %type <Node> assignment
 %type <Node> code function f_parans
@@ -122,11 +122,14 @@ cond: IF expr stmt %prec IFX {$$ = makePairNode("IF",$2,$3); }
 	| IF expr stmt ELSE stmt {$$ = makeTripNode("IF/ELSE",$2, $3, $5); }
 	;
 
-expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
+expr: expr_node { $$ = makeParentNode("EXPR", $1);};
+
+expr_node: iden_name {$$ = $1;}
+	| func_call { $$ = $1; }
+	| O_PAREN expr C_PAREN { $$ = $2; }
 	| INTEGER  {$$ = makeBaseLeaf($1);}
 	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
 	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
-	| IDENTIFIER arr_index {$$ = makeParentNode("ACCESS INDEX",$2);}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
@@ -136,7 +139,6 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
 	| CONTENT expr { $$ = makeParentNode("^",$2); }
 	| ADDRESS expr { $$ = makeParentNode("&",$2); }
 	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
-	| func_call { $$ = $1; }
 	| NOT expr { $$ = makeParentNode("!", $2); }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
@@ -147,7 +149,7 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
     | expr AND expr { $$ = makePairNode("&&",$1,$3); }
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
 	| bool_type { $$ = makeParentNode("boolean", $1); }
-	| O_PAREN expr C_PAREN { $$ = $2; }
+	
 	;
 
 ident_type:	TYPE {$$ = makeBaseLeaf($1);};

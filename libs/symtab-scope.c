@@ -88,7 +88,7 @@ void insert(ScopeStack *currentScope, SymbEntry *newEntry)
             walker = walker->nextEntry;
         walker->nextEntry = newEntry;
     }
-    printTable(currentScope->name, currentScope->table_ptr);
+    // printTable(currentScope->name, currentScope->table_ptr);
 }
 
 void printStack(ScopeStack **currentScope)
@@ -121,7 +121,7 @@ void push(ScopeStack **currentScope, ScopeStack *newScope)
     newScope->next_scope = *currentScope;
     // now move the currentScope top the new scope
     *currentScope = newScope;
-    printStack(currentScope);
+    // printStack(currentScope);
 }
 
 void pop(ScopeStack **currentScope)
@@ -135,5 +135,5 @@ void pop(ScopeStack **currentScope)
     *currentScope = (*currentScope)->next_scope;
     // free the poped head
     // free(ptr);
-    printStack(currentScope);
+    // printStack(currentScope);
 }

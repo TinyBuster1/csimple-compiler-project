@@ -136,8 +136,31 @@ bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
     return true;
 }
 
-void handleFunctionCall(ScopeStack **currentScope, Node *ast)
+type getType(Node *expr)
 {
+    if (expr->left->data == "EXPR")
+        return getType(expr->left);
+
+    if (expr->left->data == "boolean")
+        return BOOLEAN;
+
+    else
+        return INTEGER;
+}
+
+void validateSameType(Node *left, Node *right)
+{
+    if (getType(left) != getType(right))
+        fprintf(stderr, "Different types where found on '=='\n");
+}
+
+void handleExpr(ScopeStack **currentScope, Node *ast)
+{
+    if (strcmp("EXPR", ast->data) == 0)
+        handleExpr(currentScope, ast->left);
+    // same on 2 sides
+    else if (strcmp(ast->data, "==") == 0)
+        validateSameType(ast->left, ast->right);
 }
 
 void typecheck(ScopeStack **currentScope, Node *ast)
@@ -150,16 +173,13 @@ void typecheck(ScopeStack **currentScope, Node *ast)
     {
         /*****************************/
         // CREATE THE SCOPES STACK LIST
-        // printf("##SCOPE OF: %s\n", name);
-        // create a new scope
         ScopeStack *newScope = malloc(sizeof(ScopeStack));
         newScope->name = "GLOBAL";
-
         push(currentScope, newScope);
         typecheck(currentScope, ast->left);
         typecheck(currentScope, ast->right);
 
-        if (!searchScope(currentScope, "main"))
+        if (!find(currentScope, "main"))
             fprintf(stderr, "'main' was not found!\n");
         pop(currentScope);
     }
@@ -192,4 +212,7 @@ void typecheck(ScopeStack **currentScope, Node *ast)
 
     else if (strcmp("VARIABLES DECLERATION", ast->data) == 0)
         handleVarDecl(currentScope, ast);
+
+    else if (strcmp("EXPR", ast->data) == 0)
+        handleExpr(currentScope, ast->left);
 }
