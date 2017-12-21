@@ -5,7 +5,7 @@
 #include "./ast.h"
 
 // single main function flag
-bool mainflag = false;
+bool MAIN_FLAG = false;
 
 void createScope(ScopeStack **currentScope, char *name)
 {
@@ -72,7 +72,6 @@ args *getFuncArgs(Node *ast)
     args *argument = malloc(sizeof(args));
     if (strcmp("PARAMETERS", ast->data) == 0)
     {
-
         argument = getFuncArgs(ast->right);
         argument->next = getFuncArgs(ast->left);
     }
@@ -84,26 +83,41 @@ args *getFuncArgs(Node *ast)
     return argument;
 }
 
+bool validateMain(ScopeStack **currentScope, function *data)
+{
+    if (MAIN_FLAG)
+    {
+        fprintf(stderr, "multiple definition of `main' was found\n");
+        return false;
+    }
+    // now verify main is defind in global scope
+    if ((*currentScope)->next_scope)
+    {
+        fprintf(stderr, "'main' was defind in inner scope\n");
+        return false;
+    }
+    // check that args is empty
+    if (data->args)
+    {
+        fprintf(stderr, "'main' have arguments\n");
+        return false;
+    }
+    MAIN_FLAG = true;
+    return true;
+}
+
 bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
 {
     char *name = ast->middle->data;
-    // single main functino validation
-    if (strcmp("main", name) == 0)
-    {
-        if (mainflag)
-        {
-            fprintf(stderr, "multiple definition of `main' was found\n");
-            return false;
-        }
-        mainflag = true;
-    }
-
-    // creating scope for function args
-    createScope(currentScope, ast->data);
     function *data = malloc(sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
 
+    if (strcmp("main", name) == 0 && !validateMain(currentScope, data))
+        return false;
+
+    // creating scope for function args
+    createScope(currentScope, ast->data);
     // push function arguments into args scope
     args *runner = data->args;
     while (runner)
@@ -122,12 +136,35 @@ bool handleFunctionInfo(ScopeStack **currentScope, Node *ast)
     return true;
 }
 
+void handleFunctionCall(ScopeStack **currentScope, Node *ast)
+{
+}
+
 void typecheck(ScopeStack **currentScope, Node *ast)
 {
     if (!ast)
         return;
 
-    if (strcmp("CODE", ast->data) == 0)
+    // Program start
+    if (strcmp("PROGRAM", ast->data) == 0)
+    {
+        /*****************************/
+        // CREATE THE SCOPES STACK LIST
+        // printf("##SCOPE OF: %s\n", name);
+        // create a new scope
+        ScopeStack *newScope = malloc(sizeof(ScopeStack));
+        newScope->name = "GLOBAL";
+
+        push(currentScope, newScope);
+        typecheck(currentScope, ast->left);
+        typecheck(currentScope, ast->right);
+
+        if (!searchScope(currentScope, "main"))
+            fprintf(stderr, "'main' was not found!\n");
+        pop(currentScope);
+    }
+
+    else if (strcmp("CODE", ast->data) == 0)
     {
         typecheck(currentScope, ast->left);
         typecheck(currentScope, ast->right);
@@ -153,8 +190,6 @@ void typecheck(ScopeStack **currentScope, Node *ast)
     ////////////////////////////////////////////
     /* STOP REC */
 
-    if (strcmp("VARIABLES DECLERATION", ast->data) == 0)
-    {
+    else if (strcmp("VARIABLES DECLERATION", ast->data) == 0)
         handleVarDecl(currentScope, ast);
-    }
 }

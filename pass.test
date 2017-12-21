@@ -1,5 +1,4 @@
-int main(int a)
-{
-    int func1(){}
-    string func1(){}
+int main(){
+    x(x,y,7,f(1), 1);
+    y();
 }

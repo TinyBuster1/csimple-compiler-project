@@ -49,7 +49,7 @@
 %nonassoc ELSE
 /* definitions */
 %%
-start: code {ast = $1;};
+start: code {ast = makeParentNode("PROGRAM", $1);};
 
 code: code stmt { $$ = makePairNode("CODE", $1 ,$2); }
 	| stmt {$$ = $1;}
@@ -173,19 +173,13 @@ int yyerror(const char *msg)
 }
 int main() {
   	yyparse();
-  	printInOrder(ast, 0);
+	printInOrder(ast, 0);
 	printf("\n\n");
 	/*****************************/
 	// CREATE THE SCOPES STACK LIST
 	ScopeStack ** currentScope = malloc(sizeof(ScopeStack *));
-	// CREATE THE GLOBAL STACK
-	ScopeStack * GLOBAL = malloc(sizeof(ScopeStack));
-	GLOBAL->name = "GLOBAL";
-	// SET GLOBAL AS THE BOTTOM OF THE currentScope
-	// ALL OTHERS STACK WILL USE PUSH FUCNTION
-	push(currentScope, GLOBAL);
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
 	typecheck(currentScope, ast);
-	pop(currentScope);
+	
   	return 0;
 }
