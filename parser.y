@@ -88,16 +88,16 @@ stmt: var_dec { $$ = $1; }
 	| FOR O_PAREN assignment SEMICOLON expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
-	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
-	| CONTENT iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", makeParentNode("EXPR",$1), $3); }
+	| CONTENT expr ASS expr SEMICOLON{ $$ = makePairNode("^=", $2, $4); }
 	| function  { $$ = $1; }
 	| func_call SEMICOLON { $$ = $1; }
 	| block { $$ =  $1; }
 	| return_stmt { $$ =  $1; }
 	;
 
-assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
-		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+assignment: iden_name ASS expr{ $$ = makePairNode("=", makeParentNode("EXPR",$1) , $3); }
+		|	CONTENT	expr ASS expr{ $$ = makePairNode("^=", $2, $4); }
 		;
 
 /* int x, char y */
@@ -128,8 +128,8 @@ expr_node: iden_name {$$ = $1;}
 	| func_call { $$ = $1; }
 	| O_PAREN expr C_PAREN { $$ = $2; }
 	| INTEGER  {$$ = makeParentNode("INTEGER", makeBaseLeaf($1));}
-	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
-	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
+	| CHAR_LITERAL {$$ = makeParentNode("CHAR",makeBaseLeaf($1));}
+	| STRING_LITERAL {$$ = makeParentNode("STRING",makeBaseLeaf($1));}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }

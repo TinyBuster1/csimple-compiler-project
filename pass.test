@@ -1,3 +1,6 @@
 int main(){
+
+    int a,b;
     f();
+    a = f();
 }   

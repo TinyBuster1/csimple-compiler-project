@@ -145,9 +145,8 @@ bool handleFunctionInfo(Node *ast)
 
 bool validateSameType(Node *ast)
 {
-    printInOrder(ast, 0);
-    printf("T1:%s\n", typeToChar(getType(ast->left)));
-    printf("T1:%s\n", typeToChar(getType(ast->right)));
+    printf("%s:%s\n", ast->left->left->left->data, typeToChar(getType(ast->left)));
+    printf("%s:%s\n", ast->right->left->left->data, typeToChar(getType(ast->right)));
     if (getType(ast->left) != getType(ast->right))
     {
         fprintf(stderr, "Different types were found on '%s'\n", ast->data);
@@ -210,22 +209,33 @@ char *typeToChar(type t)
 
 type getType(Node *expr)
 {
+
     printInOrder(expr, 0);
+
     if (strcmp(expr->left->data, "EXPR") == 0)
         return handleExpr(expr->left);
 
     if (strcmp(expr->left->data, "boolean") == 0)
         return BOOLEAN;
 
+    if (strcmp(expr->left->data, "charp") == 0)
+        return CHAR_PTR;
+
+    if (strcmp(expr->left->data, "intp") == 0)
+        return INT_PTR;
+
     if (strcmp(expr->left->data, "INTEGER") == 0)
         return INTEGER;
+
+    if (strcmp(expr->left->data, "CHAR") == 0)
+        return CHAR;
 
     if (strcmp(expr->left->data, "IDENT") == 0)
     {
         SymbEntry *entry = find(currentScope, expr->left->left->data);
         if (!entry)
         {
-            fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
+            fprintf(stderr, "Variable '%s' was not declared!\n", expr->left->left->data);
             return -1;
         }
         printf("TYPE of %s: %s\n", entry->name, entry->var_type);
@@ -241,11 +251,14 @@ type getType(Node *expr)
     }
 
     else
-        return -1;
+        return handleExpr(expr);
 }
 
 bool validateIsInt(Node *ast)
 {
+
+    printInOrder(ast, 0);
+
     if (getType(ast->left) != INTEGER)
         fprintf(stderr, "Bad type found on '%s'\n", ast->data);
     if (getType(ast->right) != INTEGER)
@@ -256,9 +269,9 @@ bool validateIsInt(Node *ast)
     return true;
 }
 
-bool validateIsPtr(Node *left)
+bool validateIsPtr(Node *ast)
 {
-    if (getType(left) == INT_PTR || getType(left) == CHAR_PTR)
+    if (getType(ast) == INT_PTR || getType(ast) == CHAR_PTR)
         return true;
     fprintf(stderr, "Bad type found on '^'\n");
     return false;
@@ -274,6 +287,8 @@ bool validateIsSimple(Node *left)
 
 type handleExpr(Node *ast)
 {
+
+    printInOrder(ast, 0);
 
     if (strcmp("EXPR", ast->data) == 0)
         return handleExpr(ast->left);
@@ -302,13 +317,19 @@ type handleExpr(Node *ast)
     return -1;
 }
 
-void handleAssigment(Node *ast)
+bool handlePtrAssigment(Node *ast)
 {
-    printInOrder(ast, 0);
+    if (getType(ast->left) == CHAR_PTR && getType(ast->right) == CHAR)
+        return true;
+    if (getType(ast->left) == INT_PTR && getType(ast->right) == INTEGER)
+        return true;
+
+    fprintf(stderr, "Bad type on '^='\n");
 }
 
 type typecheck(Node *ast)
 {
+
     if (!ast)
         return -1;
 
@@ -356,6 +377,9 @@ type typecheck(Node *ast)
 
     else if (strcmp("=", ast->data) == 0)
         validateSameType(ast);
+
+    else if (strcmp("^=", ast->data) == 0)
+        handlePtrAssigment(ast);
 
     else if (strcmp("IF", ast->data) == 0)
     {
