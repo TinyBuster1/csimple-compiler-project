@@ -2,33 +2,16 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+
+	#include "./libs/ast.h"
+	#include "./libs/typecheck.h"
+
 	extern int yylex();
 	extern int yylineno;
 	extern char *yytext;
-	// binary tree struct
-	typedef struct Node{
-		char* data;
-		struct Node *left, *middle, *right, *four;
-	} Node;
-	// binary tree code declerations
-	Node* makeBaseLeaf(char*);
-	Node* makeParentNode(char*, Node*);
-	Node* makePairNode(char*, Node*, Node*);
-	Node* makeTripNode(char*, Node*, Node*, Node*);
-	void printInOrder(Node*, int);
+	Node * ast;
 	int yyerror(const char *msg);
 
-
-
-	// HELPER
-	char * indenter(int indent){
-		char * spaces = (char*)malloc(sizeof(char) * (indent + 1));
-
-		for(int i = 0; i < indent; i++)
-			spaces[i] = ' ';
-		spaces[indent] = '\0';
-		return spaces;
-	}
 
 %}
 %union {
@@ -57,7 +40,7 @@
 /* complex leafs */
 %type <Node> var_dec vars_list parameters single_param
 %type <Node> arr_index
-%type <Node> expr func_call return_stmt
+%type <Node> expr expr_node func_call return_stmt
 %type <Node> cond block stmt
 %type <Node> assignment
 %type <Node> code function f_parans
@@ -66,27 +49,27 @@
 %nonassoc ELSE
 /* definitions */
 %%
-start: code {printInOrder($1, 0);};
+start: code {ast = makeParentNode("PROGRAM", $1);};
 
-code: code stmt { $$ = makePairNode("MULTI-LINE", $1 ,$2); }
+code: code stmt { $$ = makePairNode("CODE", $1 ,$2); }
 	| stmt {$$ = $1;}
 		;
 function: 
 		ident_type iden_name O_PAREN parameters C_PAREN block { 
-				Node * input = makePairNode("INPUT",$2, $4);
-				Node * output = makePairNode("OUTPUT", $1, $6);
-				$$ = makePairNode("FUNCTION", input, output); 
+				Node * left = makeTripNode("FUNCTION INFO", $1, $2, $4 );
+				Node * right = $6;
+				$$ = makePairNode("FUNCTION", left, right ); 
 			}
 		| 
 		ident_type iden_name O_PAREN C_PAREN block {
-				Node * input = makeParentNode("INPUT",$2);
-				Node * output = makePairNode("OUTPUT", $1, $5);
-				$$ = makePairNode("FUNCTION NO PARAMS", input, output);  
+				Node * left = makeTripNode("FUNCTION INFO", $1, $2, NULL );
+				Node * right = $5;
+				$$ = makePairNode("FUNCTION", left, right );  
 			 }
 		;
 
 
-f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
+f_parans: f_parans COMMA expr { $$ = makePairNode("INPUT PARAMS", $1, $3);}
 		| expr {$$ = $1;}
 		;
 
@@ -100,22 +83,21 @@ block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
 
 stmt: var_dec { $$ = $1; }
 	| cond { $$ = $1; }
-	| WHILE O_PAREN expr C_PAREN stmt {$$ = makePairNode("WHILE LOOP",$3,$5); }
-	| DOWHILE stmt WHILE O_PAREN expr C_PAREN SEMICOLON {$$ = makePairNode("DO WHILE", $2, $5);}
+	| WHILE expr stmt {$$ = makePairNode("WHILE LOOP",$2,$3); }
+	| DOWHILE stmt WHILE expr SEMICOLON {$$ = makePairNode("DO WHILE", $2, $4);}
 	| FOR O_PAREN assignment SEMICOLON expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
-	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", $1, $3); }
-	| CONTENT iden_name ASS expr SEMICOLON{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+	| iden_name ASS expr SEMICOLON{ $$ = makePairNode("=", makeParentNode("EXPR",$1), $3); }
+	| CONTENT expr ASS expr SEMICOLON{ $$ = makePairNode("^=", $2, $4); }
 	| function  { $$ = $1; }
 	| func_call SEMICOLON { $$ = $1; }
 	| block { $$ =  $1; }
 	| return_stmt { $$ =  $1; }
 	;
 
-
-assignment: iden_name ASS expr{ $$ = makePairNode("=", $1, $3); }
-		|	CONTENT	iden_name ASS expr{ $$ = makePairNode("PTR CONTENT", $2, $4); }
+assignment: iden_name ASS expr{ $$ = makePairNode("=", makeParentNode("EXPR",$1) , $3); }
+		|	CONTENT	expr ASS expr{ $$ = makePairNode("^=", $2, $4); }
 		;
 
 /* int x, char y */
@@ -140,15 +122,15 @@ cond: IF expr stmt %prec IFX {$$ = makePairNode("IF",$2,$3); }
 	| IF expr stmt ELSE stmt {$$ = makeTripNode("IF/ELSE",$2, $3, $5); }
 	;
 
-expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
-	| INTEGER  {$$ = makeBaseLeaf($1);}
-	| CHAR_LITERAL {$$ = makeBaseLeaf($1);}
-	| STRING_LITERAL {$$ = makeBaseLeaf($1);}
+expr: expr_node { $$ = makeParentNode("EXPR", $1);};
+
+expr_node: iden_name {$$ = $1;}
 	| func_call { $$ = $1; }
 	| O_PAREN expr C_PAREN { $$ = $2; }
-	| IDENTIFIER arr_index {$$ = makeParentNode("ACCESS INDEX",$2);}
+	| INTEGER  {$$ = makeParentNode("INTEGER", makeBaseLeaf($1));}
+	| CHAR_LITERAL {$$ = makeParentNode("CHAR",makeBaseLeaf($1));}
+	| STRING_LITERAL {$$ = makeParentNode("STRING",makeBaseLeaf($1));}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
-	| NOT expr { $$ = makeParentNode("!", $2); }
 	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
     | expr MUL expr { $$ = makePairNode("*",$1,$3); }
@@ -156,7 +138,8 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
     | expr DIV expr { $$ = makePairNode("/",$1,$3); }
 	| CONTENT expr { $$ = makeParentNode("^",$2); }
 	| ADDRESS expr { $$ = makeParentNode("&",$2); }
-	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
+	| VERT_LINE expr VERT_LINE { $$ = makeParentNode("ABS",$2); }
+	| NOT expr { $$ = makeParentNode("!", $2); }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }
     | expr LTE expr { $$ = makePairNode("<=",$1,$3); }
@@ -166,14 +149,15 @@ expr: IDENTIFIER {$$ = makeBaseLeaf($1);}
     | expr AND expr { $$ = makePairNode("&&",$1,$3); }
     | expr OR expr { $$ = makePairNode("||",$1,$3); }
 	| bool_type { $$ = makeParentNode("boolean", $1); }
+	
 	;
 
 ident_type:	TYPE {$$ = makeBaseLeaf($1);};
 bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("bool_true"); }
           | BOOL_FALSE { $$ = makeBaseLeaf("bool_false"); }
 		  ;
-iden_name:	IDENTIFIER {$$ = makeBaseLeaf($1);}
-		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeBaseLeaf($1), $2);}
+iden_name:	IDENTIFIER {$$ = makeParentNode("IDENT", makeBaseLeaf($1));}
+		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeParentNode("IDENT", makeBaseLeaf($1)), $2);}
 		;
 arr_index:  O_BRACK expr C_BRACK { $$ = $2 ;}
 		| O_BRACK assignment C_BRACK { $$ = $2 ;}
@@ -188,60 +172,15 @@ int yyerror(const char *msg)
 	fflush(stdout);
 	fprintf(stderr, "Error: %s at line %d\n", msg, yylineno);
 	fprintf(stderr, "Parser does not expect '%s'\n",yytext);
+	exit(1);
 }
 int main() {
-  yyparse();
-  return 0;
-}
-
-Node* makeBaseLeaf(char* token){
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	return new_node;
-}
-Node* makeParentNode(char* token, Node* left){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	return new_node;
-}
-Node* makePairNode(char* token, Node* left, Node* right){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	new_node->right = right;
-	return new_node;
-}
-
-Node* makeTripNode(char* token, Node* left, Node* middle, Node * right){
-
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = strdup(token); // so we get a new pointer and not the original
-	new_node->left = left;
-	new_node->middle = middle;
-	new_node->right = right;
-	return new_node;
-}
-
-void printInOrder(Node* tree,int indent)
-{    
-	if (tree)
-    {
-		for (int i = 0; i < indent; i++)
-			printf(" ");
-    	if (tree->data)
-	    	printf("-> %s\n",tree->data);
-		if (tree->left){
-	        printInOrder(tree->left, indent+1);
-		}
-    	if (tree->middle){
-			printInOrder(tree->middle, indent+1);
-		}
-		if (tree->right){
-			printInOrder(tree->right, indent+1);
-		}
-		
-    }
+  	yyparse();
+	printInOrder(ast, 0);
+	printf("\n\n");
+	/*****************************/
+	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
+	typecheck(ast);
+	
+  	return 0;
 }
