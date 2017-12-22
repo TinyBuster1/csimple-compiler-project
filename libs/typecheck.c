@@ -145,8 +145,7 @@ bool handleFunctionInfo(Node *ast)
 
 bool validateSameType(Node *ast)
 {
-    printf("%s:%s\n", ast->left->left->left->data, typeToChar(getType(ast->left)));
-    printf("%s:%s\n", ast->right->left->left->data, typeToChar(getType(ast->right)));
+
     if (getType(ast->left) != getType(ast->right))
     {
         fprintf(stderr, "Different types were found on '%s'\n", ast->data);
@@ -209,8 +208,9 @@ char *typeToChar(type t)
 
 type getType(Node *expr)
 {
-
+    printf("getType\n");
     printInOrder(expr, 0);
+    // printInOrder(expr->left, 0);
 
     if (strcmp(expr->left->data, "EXPR") == 0)
         return handleExpr(expr->left);
@@ -238,7 +238,7 @@ type getType(Node *expr)
             fprintf(stderr, "Variable '%s' was not declared!\n", expr->left->left->data);
             return -1;
         }
-        printf("TYPE of %s: %s\n", entry->name, entry->var_type);
+        // printf("TYPE of %s: %s\n", entry->name, entry->var_type);
         return charToType(entry->var_type);
     }
 
@@ -251,16 +251,17 @@ type getType(Node *expr)
     }
 
     else
-        return handleExpr(expr);
+        return handleExpr(expr->left);
 }
 
 bool validateIsInt(Node *ast)
 {
 
-    printInOrder(ast, 0);
-
     if (getType(ast->left) != INTEGER)
         fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+    if (!ast->right)
+        return true;
+
     if (getType(ast->right) != INTEGER)
     {
         fprintf(stderr, "Bad type found on '%s'\n", ast->data);
@@ -285,34 +286,89 @@ bool validateIsSimple(Node *left)
     return false;
 }
 
+bool validateIsBoolean(Node *ast)
+{
+    printf("val bool\n");
+    printInOrder(ast, 0);
+    if (ast->right)
+    {
+        if (getType(ast->left) != BOOLEAN || getType(ast->right) != BOOLEAN)
+        {
+            fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+            return false;
+        }
+    }
+
+    else
+    {
+        if (getType(ast) != BOOLEAN)
+        {
+            fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 type handleExpr(Node *ast)
 {
-
-    printInOrder(ast, 0);
+    //     printf("handleExpr\n");
+    //     printInOrder(ast, 0);
 
     if (strcmp("EXPR", ast->data) == 0)
-        return handleExpr(ast->left);
+        return getType(ast);
     // same on 2 sides
-    else if (strcmp(ast->data, "==") == 0 && validateSameType(ast))
+    if (strcmp(ast->data, "==") == 0 && validateSameType(ast))
         return BOOLEAN;
 
-    else if (strcmp(ast->data, "*") == 0 && validateIsInt(ast))
+    if (strcmp(ast->data, "!=") == 0 && validateSameType(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "*") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    else if (strcmp(ast->data, "/") == 0 && validateIsInt(ast))
+    if (strcmp(ast->data, "/") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    else if (strcmp(ast->data, "-") == 0 && validateIsInt(ast))
+    if (strcmp(ast->data, "-") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    else if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
+    if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    else if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left))
+    if (strcmp(ast->data, "ABS") == 0 && validateIsInt(ast))
+        return INTEGER;
+
+    if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left))
         return getType(ast->left);
 
-    else if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
+    if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
         return getType(ast->left);
+
+    if (strcmp(ast->data, "!") == 0 && validateIsBoolean(ast->left))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "&&") == 0 && validateIsBoolean(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "||") == 0 && validateIsBoolean(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, ">") == 0 && validateIsInt(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, ">=") == 0 && validateIsInt(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "<") == 0 && validateIsInt(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "<=") == 0 && validateIsInt(ast))
+        return BOOLEAN;
+
+    if (strcmp(ast->data, "<=") == 0 && validateIsInt(ast))
+        return BOOLEAN;
 
     return -1;
 }
@@ -385,6 +441,29 @@ type typecheck(Node *ast)
     {
         if (typecheck(ast->left) != BOOLEAN)
             fprintf(stderr, "Bad type found on 'if' statement\n");
+        typecheck(ast->right);
+    }
+
+    else if (strcmp("WHILE LOOP", ast->data) == 0)
+    {
+        if (typecheck(ast->left) != BOOLEAN)
+            fprintf(stderr, "Bad type found on 'while' statement\n");
+        typecheck(ast->right);
+    }
+
+    else if (strcmp("DO WHILE", ast->data) == 0)
+    {
+        if (handleExpr(ast->right) != BOOLEAN)
+            fprintf(stderr, "Bad type found on 'while' statement\n");
+        typecheck(ast->left);
+    }
+
+    else if (strcmp("FOR LOOP", ast->data) == 0)
+    {
+        Node *fordata = ast->left;
+        typecheck(fordata->left);
+        if (handleExpr(fordata->middle) != BOOLEAN)
+            fprintf(stderr, "Bad type found on 'for' statement\n");
         typecheck(ast->right);
     }
 

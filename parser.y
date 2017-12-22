@@ -83,8 +83,8 @@ block: O_CURL code C_CURL {$$ = makeParentNode("BLOCK",$2);}
 
 stmt: var_dec { $$ = $1; }
 	| cond { $$ = $1; }
-	| WHILE O_PAREN expr C_PAREN stmt {$$ = makePairNode("WHILE LOOP",$3,$5); }
-	| DOWHILE stmt WHILE O_PAREN expr C_PAREN SEMICOLON {$$ = makePairNode("DO WHILE", $2, $5);}
+	| WHILE expr stmt {$$ = makePairNode("WHILE LOOP",$2,$3); }
+	| DOWHILE stmt WHILE expr SEMICOLON {$$ = makePairNode("DO WHILE", $2, $4);}
 	| FOR O_PAREN assignment SEMICOLON expr SEMICOLON assignment C_PAREN stmt {
 			$$ = makePairNode("FOR LOOP", makeTripNode("FOR INPUT",$3, $5,$7), $9);  
 		}
@@ -138,7 +138,7 @@ expr_node: iden_name {$$ = $1;}
     | expr DIV expr { $$ = makePairNode("/",$1,$3); }
 	| CONTENT expr { $$ = makeParentNode("^",$2); }
 	| ADDRESS expr { $$ = makeParentNode("&",$2); }
-	| VERT_LINE iden_name VERT_LINE { $$ = makeParentNode("|",$2); }
+	| VERT_LINE expr VERT_LINE { $$ = makeParentNode("ABS",$2); }
 	| NOT expr { $$ = makeParentNode("!", $2); }
 	| expr LT expr { $$ = makePairNode("<",$1,$3); }
     | expr GT expr { $$ = makePairNode(">",$1,$3); }

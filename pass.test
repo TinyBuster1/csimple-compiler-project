@@ -1,6 +1,7 @@
 int main(){
-
-    int a,b;
-    f();
-    a = f();
+    char x;
+    do {
+        int x;
+        x = 17;
+    } while(x == 'a');
 }   
