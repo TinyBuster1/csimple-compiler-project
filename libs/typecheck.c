@@ -10,6 +10,17 @@ bool MAIN_FLAG = false;
 // CREATE THE SCOPES STACK LIST
 ScopeStack **currentScope;
 
+type handleEmptyFunctionCall(Node *func)
+{
+    SymbEntry *entry = find(currentScope, func->data);
+    if (!entry)
+    {
+        fprintf(stderr, "Function '%s' was never declered!\n", func->data);
+        return -1;
+    }
+    return charToType(entry->data->r_value);
+}
+
 void createScope(char *name)
 {
     // printf("##SCOPE OF: %s\n", name);
@@ -37,7 +48,33 @@ void handleMultiVarsDecl(char *type, Node *ids)
     if (strcmp("MULTIPLE IDENTIFIERS", ids->left->data) == 0)
     {
         handleMultiVarsDecl(type, ids->left);
-        insertVar(type, ids->right->left->data);
+        if (strcmp("ARRAY ACCESS", ids->right->data) == 0)
+        {
+            if (strcmp(type, "string") != 0)
+                fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+            else if (getType(ids->right->right) != INTEGER)
+                fprintf(stderr, "expression in brackets must type of 'integer'\n");
+            else
+                insertVar(type, ids->right->left->left->data);
+        }
+        else
+            insertVar(type, ids->right->left->data);
+    }
+    else if (strcmp("ARRAY ACCESS", ids->left->data) == 0)
+    {
+        if (strcmp(type, "string") != 0)
+            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+        else if (getType(ids->left->right) != INTEGER)
+            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+        else
+            insertVar(type, ids->left->left->left->data);
+
+        if (strcmp(type, "string") != 0)
+            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+        else if (getType(ids->right->right) != INTEGER)
+            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+        else
+            insertVar(type, ids->right->left->left->data);
     }
     else
     {
@@ -48,7 +85,6 @@ void handleMultiVarsDecl(char *type, Node *ids)
 
 void handleVarDecl(Node *ast)
 {
-
     char *type = ast->left->data;
     if (strcmp("void", type) == 0)
     {
@@ -57,7 +93,22 @@ void handleVarDecl(Node *ast)
     }
     Node *ids = ast->right;
     if (strcmp("MULTIPLE IDENTIFIERS", ids->data) == 0)
+    {
         handleMultiVarsDecl(type, ids);
+    }
+
+    else if (strcmp("ARRAY ACCESS", ids->data) == 0)
+    {
+        if (strcmp(type, "string") != 0)
+            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+        else if (getType(ids->right) != INTEGER)
+            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+        else
+        {
+            ids = ids->left;
+            insertVar(type, ids->left->data);
+        }
+    }
     else
         insertVar(type, ids->left->data);
 }
@@ -208,8 +259,8 @@ char *typeToChar(type t)
 
 type getType(Node *expr)
 {
-    printf("getType\n");
-    printInOrder(expr, 0);
+    // printf("getType\n");
+    // printInOrder(expr, 0);
     // printInOrder(expr->left, 0);
 
     if (strcmp(expr->left->data, "EXPR") == 0)
@@ -227,8 +278,14 @@ type getType(Node *expr)
     if (strcmp(expr->left->data, "INTEGER") == 0)
         return INTEGER;
 
+    if (strcmp(expr->left->data, "STRING") == 0)
+        return STRING;
+
     if (strcmp(expr->left->data, "CHAR") == 0)
         return CHAR;
+
+    if (strcmp(expr->left->data, "FUNCTION CALL NO PARAMS") == 0)
+        return handleEmptyFunctionCall(expr->left->left->left);
 
     if (strcmp(expr->left->data, "IDENT") == 0)
     {
@@ -244,7 +301,8 @@ type getType(Node *expr)
 
     if (strcmp(expr->left->data, "ARRAY ACCESS") == 0)
     {
-        SymbEntry *entry = find(currentScope, expr->left->left->data);
+        printInOrder(expr, 0);
+        SymbEntry *entry = find(currentScope, expr->left->left->left->data);
         if (!entry)
             fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
         return CHAR;
@@ -288,8 +346,6 @@ bool validateIsSimple(Node *left)
 
 bool validateIsBoolean(Node *ast)
 {
-    printf("val bool\n");
-    printInOrder(ast, 0);
     if (ast->right)
     {
         if (getType(ast->left) != BOOLEAN || getType(ast->right) != BOOLEAN)
@@ -469,6 +525,9 @@ type typecheck(Node *ast)
 
     else if (strcmp("VARIABLES DECLERATION", ast->data) == 0)
         handleVarDecl(ast);
+
+    else if (strcmp("FUNCTION CALL NO PARAMS", ast->data) == 0)
+        return handleEmptyFunctionCall(ast->left->left);
 
     else if (strcmp("EXPR", ast->data) == 0)
         return handleExpr(ast->left);

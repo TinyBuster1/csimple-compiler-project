@@ -75,7 +75,7 @@ void printTable(char *SCOPE_NAME, SymbEntry *head)
  */
 void insert(ScopeStack *currentScope, SymbEntry *newEntry)
 {
-    // printf("INSERT: '%s' into symbol table of '%s'\n", newEntry->name, currentScope->name);
+    printf("INSERT: '%s:%s'  into symbol table of '%s'\n", newEntry->var_type, newEntry->name, currentScope->name);
     SymbEntry *walker = currentScope->table_ptr;
     // if symbol table is empty
     if (!walker)

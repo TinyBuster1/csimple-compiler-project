@@ -1,7 +1,6 @@
+
+
 int main(){
-    char x;
-    do {
-        int x;
-        x = 17;
-    } while(x == 'a');
-}   
+    int x;
+    f();
+}
