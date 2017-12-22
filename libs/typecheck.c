@@ -539,8 +539,6 @@ SymbEntry *findClosestFuction()
             {
                 return table_runner;
             }
-            else
-                printf("%s is not a function\n", table_runner->name);
 
             table_runner = table_runner->nextEntry;
         }

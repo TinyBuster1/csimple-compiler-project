@@ -1,6 +1,13 @@
-void main(){
-    int f(){
-        return 1;
+int main()
+{
+    int x;
+    int foo()
+    {
+        boolean fee()
+        {
+            return true;
+        }
+        return 0;
     }
-    return;
+    return 1;
 }
