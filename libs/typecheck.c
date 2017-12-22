@@ -495,11 +495,32 @@ bool handlePtrAssigment(Node *ast)
     fprintf(stderr, "Bad type on '^='\n");
 }
 
+bool checkReturn(Node *ast)
+{
+    // ignore new functions nodes
+    if (strcmp("RETURN", ast->data) == 0)
+        return true;
+
+    if (strcmp("RETURN VOID", ast->data) == 0)
+        return true;
+
+    if (ast->left && strcmp("FUNCTION", ast->left->data) != 0)
+        return checkReturn(ast->left);
+    if (ast->middle && strcmp("FUNCTION", ast->middle->data) != 0)
+        return checkReturn(ast->middle);
+    if (ast->right && strcmp("FUNCTION", ast->right->data) != 0)
+        return checkReturn(ast->right);
+
+    return false;
+}
+
 void handleFunctionBlock(Node *block, SymbEntry *func_data)
 {
     createScope("FUNCTION BLOCK");
     typecheck(block->left);
     typecheck(block->right);
+    if (!checkReturn(block))
+        fprintf(stderr, "Return was expected\n");
     pop(currentScope); // pop block scope
 }
 
@@ -511,14 +532,11 @@ SymbEntry *findClosestFuction()
 
     while (scope_runner)
     {
-        printf("searching in TABLE OF SCOPE: %s\n", scope_runner->name);
         table_runner = scope_runner->table_ptr;
         while (table_runner)
         {
-            printf("searching in ENTRY: %s\n", table_runner->name);
             if (table_runner->data)
             {
-                printf("FOUND\n");
                 return table_runner;
             }
             else
