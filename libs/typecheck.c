@@ -504,12 +504,12 @@ bool checkReturn(Node *ast)
     if (strcmp("RETURN VOID", ast->data) == 0)
         return true;
 
-    if (ast->left && strcmp("FUNCTION", ast->left->data) != 0)
-        return checkReturn(ast->left);
-    if (ast->middle && strcmp("FUNCTION", ast->middle->data) != 0)
-        return checkReturn(ast->middle);
-    if (ast->right && strcmp("FUNCTION", ast->right->data) != 0)
-        return checkReturn(ast->right);
+    if (ast->left && strcmp("FUNCTION", ast->left->data) != 0 && checkReturn(ast->left))
+        return true;
+    if (ast->middle && strcmp("function", ast->middle->data) != 0 && checkReturn(ast->middle))
+        return true;
+    if (ast->right && strcmp("FUNCTION", ast->right->data) != 0 && checkReturn(ast->right))
+        return true;
 
     return false;
 }
@@ -519,8 +519,6 @@ void handleFunctionBlock(Node *block, SymbEntry *func_data)
     createScope("FUNCTION BLOCK");
     typecheck(block->left);
     typecheck(block->right);
-    if (!checkReturn(block))
-        fprintf(stderr, "Return was expected\n");
     pop(currentScope); // pop block scope
 }
 
@@ -606,6 +604,8 @@ type typecheck(Node *ast)
         SymbEntry *function_data = handleFunctionInfo(ast->left);
         if (!searchScope(currentScope, ast->left->middle->data) && function_data)
         {
+            if (!checkReturn(ast->right))
+                fprintf(stderr, "Return was expected\n");
             handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
         }
