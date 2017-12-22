@@ -10,6 +10,16 @@ bool MAIN_FLAG = false;
 // CREATE THE SCOPES STACK LIST
 ScopeStack **currentScope;
 
+void printArgsList(args *list)
+{
+    while (list)
+    {
+        printf("%s %s --> ", list->name, list->type);
+        list = list->next;
+    }
+    printf("NULL\n");
+}
+
 type handleEmptyFunctionCall(Node *func)
 {
     SymbEntry *entry = find(currentScope, func->data);
@@ -21,20 +31,68 @@ type handleEmptyFunctionCall(Node *func)
     return charToType(entry->data->r_value);
 }
 
-type handleFunctionCall(Node *func)
+args *getParamsTypes(Node *ast)
 {
-    SymbEntry *entry = find(currentScope, func->data);
-    if (!entry)
+
+    if (!ast)
+        return NULL;
+
+    args *argument = malloc(sizeof(args));
+    if (strcmp("INPUT PARAMS", ast->data) == 0)
     {
-        fprintf(stderr, "Function '%s' was never declered!\n", func->data);
+        argument->type = typeToChar(getType(ast->right));
+        argument->next = getParamsTypes(ast->left);
+    }
+    else
+        argument->type = typeToChar(getType(ast));
+
+    return argument;
+}
+
+int countLen(args *args)
+{
+    int count = 0;
+    while (args)
+    {
+        count++;
+        args = args->next;
+    }
+
+    return count;
+}
+
+type handleFunctionCall(Node *ast)
+{
+    SymbEntry *function = find(currentScope, ast->left->left->data);
+    if (!function)
+    {
+        fprintf(stderr, "Function '%s' was never declered!\n", ast->data);
         return -1;
     }
-    return charToType(entry->data->r_value);
+
+    args *runner = function->data->args;
+    args *params = getParamsTypes(ast->right);
+    if (countLen(runner) != countLen(params))
+    {
+        fprintf(stderr, "args count is unmatched \n");
+        return charToType(function->data->r_value);
+    }
+
+    while (runner && params)
+    {
+        if (charToType(params->type) != charToType(runner->type))
+            fprintf(stderr, "type of '%s' is unmatched \n", runner->type);
+
+        runner = runner->next;
+        params = params->next;
+    }
+
+    return charToType(function->data->r_value);
 }
 
 void createScope(char *name)
 {
-    printf("##SCOPE OF: %s\n", (*currentScope)->name);
+    // printf("##SCOPE OF: %s\n", (*currentScope)->name);
     // create a new scope
     ScopeStack *newScope = malloc(sizeof(ScopeStack));
     newScope->name = name;
@@ -124,16 +182,6 @@ void handleVarDecl(Node *ast)
         insertVar(type, ids->left->data);
 }
 
-void printArgsList(args *list)
-{
-    while (list)
-    {
-        printf("%s %s --> ", list->name, list->type);
-        list = list->next;
-    }
-    printf("NULL\n");
-}
-
 args *getFuncArgs(Node *ast)
 {
     if (!ast)
@@ -175,9 +223,8 @@ bool validateMain(function *data)
     return true;
 }
 
-bool handleFunctionInfo(Node *ast)
+SymbEntry *handleFunctionInfo(Node *ast)
 {
-
     char *name = ast->middle->left->data;
 
     function *data = malloc(sizeof(function));
@@ -185,7 +232,7 @@ bool handleFunctionInfo(Node *ast)
     data->args = getFuncArgs(ast->right);
 
     if (strcmp("main", name) == 0 && !validateMain(data))
-        return false;
+        return NULL;
 
     // creating scope for function args
     createScope(ast->data);
@@ -205,7 +252,7 @@ bool handleFunctionInfo(Node *ast)
 
     insert((*currentScope)->next_scope, newEntry);
 
-    return true;
+    return newEntry;
 }
 
 bool validateSameType(Node *ast)
@@ -273,9 +320,6 @@ char *typeToChar(type t)
 
 type getType(Node *expr)
 {
-    // printf("getType\n");
-    // printInOrder(expr, 0);
-    // printInOrder(expr->left, 0);
 
     if (strcmp(expr->left->data, "EXPR") == 0)
         return handleExpr(expr->left);
@@ -315,7 +359,7 @@ type getType(Node *expr)
 
     if (strcmp(expr->left->data, "ARRAY ACCESS") == 0)
     {
-        printInOrder(expr, 0);
+
         SymbEntry *entry = find(currentScope, expr->left->left->left->data);
         if (!entry)
             fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
@@ -383,8 +427,6 @@ bool validateIsBoolean(Node *ast)
 
 type handleExpr(Node *ast)
 {
-    //     printf("handleExpr\n");
-    //     printInOrder(ast, 0);
 
     if (strcmp("EXPR", ast->data) == 0)
         return getType(ast);
@@ -453,6 +495,15 @@ bool handlePtrAssigment(Node *ast)
     fprintf(stderr, "Bad type on '^='\n");
 }
 
+void handleFunctionBlock(Node *block, SymbEntry *func_data)
+{
+
+    createScope("FUNCTION BLOCK");
+    typecheck(block->left);
+    typecheck(block->right);
+    pop(currentScope); // pop block scope
+}
+
 type typecheck(Node *ast)
 {
 
@@ -475,6 +526,11 @@ type typecheck(Node *ast)
         pop(currentScope);
     }
 
+    else if (strcmp("RETURN", ast->data) == 0)
+    {
+        return getType(ast->left);
+    }
+
     else if (strcmp("CODE", ast->data) == 0)
     {
         typecheck(ast->left);
@@ -483,9 +539,10 @@ type typecheck(Node *ast)
 
     else if (strcmp("FUNCTION", ast->data) == 0)
     {
-        if (!searchScope(currentScope, ast->left->middle->data) && handleFunctionInfo(ast->left))
+        SymbEntry *function_data = handleFunctionInfo(ast->left);
+        if (!searchScope(currentScope, ast->left->middle->data) && function_data)
         {
-            typecheck(ast->right);
+            handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
         }
     }
@@ -543,8 +600,8 @@ type typecheck(Node *ast)
     else if (strcmp("FUNCTION CALL NO PARAMS", ast->data) == 0)
         return handleEmptyFunctionCall(ast->left->left);
 
-    // else if (strcmp("FUNCTION CALL", ast->data) == 0)
-    //     return handleFunctionCall(ast->left->left);
+    else if (strcmp("FUNCTION CALL", ast->data) == 0)
+        return handleFunctionCall(ast);
 
     else if (strcmp("EXPR", ast->data) == 0)
         return handleExpr(ast->left);

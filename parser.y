@@ -69,7 +69,7 @@ function:
 		;
 
 
-f_parans: f_parans COMMA expr { $$ = makePairNode("FUNC INPUT PARAMS", $1, $3);}
+f_parans: f_parans COMMA expr { $$ = makePairNode("INPUT PARAMS", $1, $3);}
 		| expr {$$ = $1;}
 		;
 

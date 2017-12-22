@@ -75,7 +75,7 @@ void printTable(char *SCOPE_NAME, SymbEntry *head)
  */
 void insert(ScopeStack *currentScope, SymbEntry *newEntry)
 {
-    printf("INSERT: '%s:%s'  into symbol table of '%s'\n", newEntry->var_type, newEntry->name, currentScope->name);
+    // printf("INSERT: '%s:%s'  into symbol table of '%s'\n", newEntry->var_type, newEntry->name, currentScope->name);
     SymbEntry *walker = currentScope->table_ptr;
     // if symbol table is empty
     if (!walker)
@@ -88,7 +88,7 @@ void insert(ScopeStack *currentScope, SymbEntry *newEntry)
             walker = walker->nextEntry;
         walker->nextEntry = newEntry;
     }
-    printTable(currentScope->name, currentScope->table_ptr);
+    // printTable(currentScope->name, currentScope->table_ptr);
 }
 
 void printStack(ScopeStack **currentScope)
@@ -116,30 +116,19 @@ void printStack(ScopeStack **currentScope)
  */
 void push(ScopeStack **currentScope, ScopeStack *newScope)
 {
-    printf("PUSH: '%s'\n", newScope->name);
+    // printf("PUSH: '%s'\n", newScope->name);
     // first, make the new scope point to the current top scope
     newScope->next_scope = *currentScope;
     // now move the currentScope top the new scope
     *currentScope = newScope;
-    printStack(currentScope);
+    // printStack(currentScope);
 }
 
 void pop(ScopeStack **currentScope)
 {
-    printf("POP: '%s'\n", (*currentScope)->name);
-    // free the symbole table of the current top
+    // printf("POP: '%s'\n", (*currentScope)->name);
     SymbEntry *runner = (*currentScope)->table_ptr;
-    while (runner)
-    {
-        SymbEntry *trash = runner;
-        runner = runner->nextEntry;
-        free(trash);
-    }
-    // save a tmp to free after moving the head 1 down
     ScopeStack *ptr = *currentScope;
-    // move the head 1 down
     *currentScope = (*currentScope)->next_scope;
-    // free the poped head
-    free(ptr);
-    printStack(currentScope);
+    //printStack(currentScope);
 }

@@ -1,7 +1,7 @@
-int f(string x, int y){
+int f(char x, char y, int z){
 
 }
 
 int main(){
-
+    f('c','c', 12);
 }
