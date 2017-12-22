@@ -21,9 +21,20 @@ type handleEmptyFunctionCall(Node *func)
     return charToType(entry->data->r_value);
 }
 
+type handleFunctionCall(Node *func)
+{
+    SymbEntry *entry = find(currentScope, func->data);
+    if (!entry)
+    {
+        fprintf(stderr, "Function '%s' was never declered!\n", func->data);
+        return -1;
+    }
+    return charToType(entry->data->r_value);
+}
+
 void createScope(char *name)
 {
-    // printf("##SCOPE OF: %s\n", name);
+    printf("##SCOPE OF: %s\n", (*currentScope)->name);
     // create a new scope
     ScopeStack *newScope = malloc(sizeof(ScopeStack));
     newScope->name = name;
@@ -136,7 +147,7 @@ args *getFuncArgs(Node *ast)
     else
     {
         argument->type = ast->left->data;
-        argument->name = ast->right->data;
+        argument->name = ast->right->left->data;
     }
     return argument;
 }
@@ -166,7 +177,9 @@ bool validateMain(function *data)
 
 bool handleFunctionInfo(Node *ast)
 {
+
     char *name = ast->middle->left->data;
+
     function *data = malloc(sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
@@ -189,6 +202,7 @@ bool handleFunctionInfo(Node *ast)
     SymbEntry *newEntry = malloc(sizeof(SymbEntry));
     newEntry->name = name;
     newEntry->data = data;
+
     insert((*currentScope)->next_scope, newEntry);
 
     return true;
@@ -528,6 +542,9 @@ type typecheck(Node *ast)
 
     else if (strcmp("FUNCTION CALL NO PARAMS", ast->data) == 0)
         return handleEmptyFunctionCall(ast->left->left);
+
+    // else if (strcmp("FUNCTION CALL", ast->data) == 0)
+    //     return handleFunctionCall(ast->left->left);
 
     else if (strcmp("EXPR", ast->data) == 0)
         return handleExpr(ast->left);
