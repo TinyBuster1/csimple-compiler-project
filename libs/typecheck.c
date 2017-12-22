@@ -560,7 +560,21 @@ type typecheck(Node *ast)
             fprintf(stderr, "'return' unexpected\n");
         else
         {
+
             if (getType(ast->left) != charToType(f->data->r_value))
+                fprintf(stderr, "Bad 'return' type\n");
+        }
+    }
+
+    else if (strcmp("RETURN VOID", ast->data) == 0)
+    {
+        SymbEntry *f = findClosestFuction();
+        if (!f)
+            fprintf(stderr, "'return' unexpected\n");
+        else
+        {
+
+            if (VOID != charToType(f->data->r_value))
                 fprintf(stderr, "Bad 'return' type\n");
         }
     }
