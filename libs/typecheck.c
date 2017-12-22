@@ -497,11 +497,38 @@ bool handlePtrAssigment(Node *ast)
 
 void handleFunctionBlock(Node *block, SymbEntry *func_data)
 {
-
     createScope("FUNCTION BLOCK");
     typecheck(block->left);
     typecheck(block->right);
     pop(currentScope); // pop block scope
+}
+
+SymbEntry *findClosestFuction()
+{
+    // return can be only for the current scope, so it's only upper level
+    ScopeStack *scope_runner = (*currentScope)->next_scope;
+    SymbEntry *table_runner = scope_runner->table_ptr;
+
+    while (scope_runner)
+    {
+        printf("searching in TABLE OF SCOPE: %s\n", scope_runner->name);
+        table_runner = scope_runner->table_ptr;
+        while (table_runner)
+        {
+            printf("searching in ENTRY: %s\n", table_runner->name);
+            if (table_runner->data)
+            {
+                printf("FOUND\n");
+                return table_runner;
+            }
+            else
+                printf("%s is not a function\n", table_runner->name);
+
+            table_runner = table_runner->nextEntry;
+        }
+        scope_runner = scope_runner->next_scope;
+    }
+    return NULL;
 }
 
 type typecheck(Node *ast)
@@ -528,7 +555,14 @@ type typecheck(Node *ast)
 
     else if (strcmp("RETURN", ast->data) == 0)
     {
-        return getType(ast->left);
+        SymbEntry *f = findClosestFuction();
+        if (!f)
+            fprintf(stderr, "'return' unexpected\n");
+        else
+        {
+            if (getType(ast->left) != charToType(f->data->r_value))
+                fprintf(stderr, "Bad 'return' type\n");
+        }
     }
 
     else if (strcmp("CODE", ast->data) == 0)
