@@ -9,6 +9,7 @@ bool MAIN_FLAG = false;
 /*****************************/
 // CREATE THE SCOPES STACK LIST
 ScopeStack **currentScope;
+function *current_function;
 
 void printArgsList(args *list)
 {
@@ -227,7 +228,7 @@ SymbEntry *handleFunctionInfo(Node *ast)
 {
     char *name = ast->middle->left->data;
 
-    function *data = malloc(sizeof(function));
+    function *data = calloc(1,sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
 
@@ -249,8 +250,9 @@ SymbEntry *handleFunctionInfo(Node *ast)
     SymbEntry *newEntry = malloc(sizeof(SymbEntry));
     newEntry->name = name;
     newEntry->data = data;
-
+    
     insert((*currentScope)->next_scope, newEntry);
+    current_function=newEntry->data;
 
     return newEntry;
 }
@@ -522,27 +524,9 @@ void handleFunctionBlock(Node *block, SymbEntry *func_data)
     pop(currentScope); // pop block scope
 }
 
-SymbEntry *findClosestFuction()
+function *findFunctionReturnType()
 {
-    // return can be only for the current scope, so it's only upper level
-    ScopeStack *scope_runner = (*currentScope)->next_scope;
-    SymbEntry *table_runner = scope_runner->table_ptr;
-
-    while (scope_runner)
-    {
-        table_runner = scope_runner->table_ptr;
-        while (table_runner)
-        {
-            if (table_runner->data)
-            {
-                return table_runner;
-            }
-
-            table_runner = table_runner->nextEntry;
-        }
-        scope_runner = scope_runner->next_scope;
-    }
-    return NULL;
+    return current_function;
 }
 
 type typecheck(Node *ast)
@@ -569,26 +553,26 @@ type typecheck(Node *ast)
 
     else if (strcmp("RETURN", ast->data) == 0)
     {
-        SymbEntry *f = findClosestFuction();
+        function *f = findFunctionReturnType();
         if (!f)
             fprintf(stderr, "'return' unexpected\n");
         else
         {
 
-            if (getType(ast->left) != charToType(f->data->r_value))
+            if (getType(ast->left) != charToType(f->r_value))
                 fprintf(stderr, "Bad 'return' type\n");
         }
     }
 
     else if (strcmp("RETURN VOID", ast->data) == 0)
     {
-        SymbEntry *f = findClosestFuction();
+        function *f = findFunctionReturnType();
         if (!f)
             fprintf(stderr, "'return' unexpected\n");
         else
         {
 
-            if (VOID != charToType(f->data->r_value))
+            if (VOID != charToType(f->r_value))
                 fprintf(stderr, "Bad 'return' type\n");
         }
     }
