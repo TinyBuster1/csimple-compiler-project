@@ -228,6 +228,10 @@ SymbEntry *handleFunctionInfo(Node *ast)
 {
     char *name = ast->middle->left->data;
 
+    if (searchScope(currentScope, name))
+    {   
+        return NULL;
+    }
     function *data = calloc(1,sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
@@ -247,7 +251,7 @@ SymbEntry *handleFunctionInfo(Node *ast)
 
     // push function data into upper scope for future search and validation
     // we do that only after we validate the function block!
-    SymbEntry *newEntry = malloc(sizeof(SymbEntry));
+    SymbEntry *newEntry = calloc(1,sizeof(SymbEntry));
     newEntry->name = name;
     newEntry->data = data;
     
@@ -522,6 +526,7 @@ void handleFunctionBlock(Node *block, SymbEntry *func_data)
     typecheck(block->left);
     typecheck(block->right);
     pop(currentScope); // pop block scope
+    
 }
 
 function *findFunctionReturnType()
@@ -592,8 +597,12 @@ type typecheck(Node *ast)
                 fprintf(stderr, "Return was expected\n");
             handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
+ 
         }
+      
     }
+        
+
 
     else if (strcmp("BLOCK", ast->data) == 0)
     {
