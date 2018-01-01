@@ -21,12 +21,12 @@ void printArgsList(args *list)
     printf("NULL\n");
 }
 
-type handleEmptyFunctionCall(Node *func)
+type handleEmptyFunctionCall(Node *func, int line)
 {
     SymbEntry *entry = find(currentScope, func->data);
     if (!entry)
     {
-        fprintf(stderr, "Function '%s' was never declered!\n", func->data);
+        fprintf(stderr, "line: %d: Function '%s' was never declered!\n", line, func->data);
         return -1;
     }
     return charToType(entry->data->r_value);
@@ -67,7 +67,7 @@ type handleFunctionCall(Node *ast)
     SymbEntry *function = find(currentScope, ast->left->left->data);
     if (!function)
     {
-        fprintf(stderr, "Function '%s' was never declered!\n", ast->data);
+        fprintf(stderr, "line: %d: Function '%s' was never declered!\n", ast->line, ast->data);
         return -1;
     }
 
@@ -75,14 +75,14 @@ type handleFunctionCall(Node *ast)
     args *params = getParamsTypes(ast->right);
     if (countLen(runner) != countLen(params))
     {
-        fprintf(stderr, "args count is unmatched \n");
+        fprintf(stderr, "line: %d: args count is unmatched \n", ast->line);
         return charToType(function->data->r_value);
     }
 
     while (runner && params)
     {
         if (charToType(params->type) != charToType(runner->type))
-            fprintf(stderr, "type of '%s' is unmatched \n", runner->type);
+            fprintf(stderr, "line: %d: type of '%s' is unmatched \n", ast->line, runner->type);
 
         runner = runner->next;
         params = params->next;
@@ -121,9 +121,9 @@ void handleMultiVarsDecl(char *type, Node *ids)
         if (strcmp("ARRAY ACCESS", ids->right->data) == 0)
         {
             if (strcmp(type, "string") != 0)
-                fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+                fprintf(stderr, "line: %d: index brackets can only be apllied on 'string' type variable\n", ids->line);
             else if (getType(ids->right->right) != INTEGER)
-                fprintf(stderr, "expression in brackets must type of 'integer'\n");
+                fprintf(stderr, "line: %d: expression in brackets must type of 'integer'\n", ids->line);
             else
                 insertVar(type, ids->right->left->left->data);
         }
@@ -133,16 +133,16 @@ void handleMultiVarsDecl(char *type, Node *ids)
     else if (strcmp("ARRAY ACCESS", ids->left->data) == 0)
     {
         if (strcmp(type, "string") != 0)
-            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+            fprintf(stderr, "line: %d: index brackets can only be apllied on 'string' type variable\n", ids->line);
         else if (getType(ids->left->right) != INTEGER)
-            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+            fprintf(stderr, "line: %d: expression in brackets must type of 'integer'\n", ids->line);
         else
             insertVar(type, ids->left->left->left->data);
 
         if (strcmp(type, "string") != 0)
-            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+            fprintf(stderr, "line: %d: index brackets can only be apllied on 'string' type variable\n", ids->line);
         else if (getType(ids->right->right) != INTEGER)
-            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+            fprintf(stderr, "line: %d: expression in brackets must type of 'integer'\n", ids->line);
         else
             insertVar(type, ids->right->left->left->data);
     }
@@ -158,7 +158,7 @@ void handleVarDecl(Node *ast)
     char *type = ast->left->data;
     if (strcmp("void", type) == 0)
     {
-        fprintf(stderr, "varialbes of type 'void' can not be declered\n");
+        fprintf(stderr, "line: %d: varialbes of type 'void' can not be declered\n", ast->line);
         return;
     }
     Node *ids = ast->right;
@@ -170,9 +170,9 @@ void handleVarDecl(Node *ast)
     else if (strcmp("ARRAY ACCESS", ids->data) == 0)
     {
         if (strcmp(type, "string") != 0)
-            fprintf(stderr, "index brackets can only be apllied on 'string' type variable\n");
+            fprintf(stderr, "line: %d: index brackets can only be apllied on 'string' type variable\n", ast->line);
         else if (getType(ids->right) != INTEGER)
-            fprintf(stderr, "expression in brackets must type of 'integer'\n");
+            fprintf(stderr, "line: %d: expression in brackets must type of 'integer'\n", ast->line);
         else
         {
             ids = ids->left;
@@ -201,23 +201,23 @@ args *getFuncArgs(Node *ast)
     return argument;
 }
 
-bool validateMain(function *data)
+bool validateMain(function *data, int line)
 {
     if (MAIN_FLAG)
     {
-        fprintf(stderr, "multiple definition of `main' was found\n");
+        fprintf(stderr, "line: %d: multiple definition of `main' was found\n", line);
         return false;
     }
     // now verify main is defind in global scope
     if ((*currentScope)->next_scope)
     {
-        fprintf(stderr, "'main' was defind in inner scope\n");
+        fprintf(stderr, "line: %d: 'main' was defind in inner scope\n", line);
         return false;
     }
     // check that args is empty
     if (data->args)
     {
-        fprintf(stderr, "'main' have arguments\n");
+        fprintf(stderr, "line: %d: 'main' have arguments\n", line);
         return false;
     }
     MAIN_FLAG = true;
@@ -229,14 +229,14 @@ SymbEntry *handleFunctionInfo(Node *ast)
     char *name = ast->middle->left->data;
 
     if (searchScope(currentScope, name))
-    {   
+    {
         return NULL;
     }
-    function *data = calloc(1,sizeof(function));
+    function *data = calloc(1, sizeof(function));
     data->r_value = ast->left->data;
     data->args = getFuncArgs(ast->right);
 
-    if (strcmp("main", name) == 0 && !validateMain(data))
+    if (strcmp("main", name) == 0 && !validateMain(data, ast->line))
         return NULL;
 
     // creating scope for function args
@@ -251,12 +251,12 @@ SymbEntry *handleFunctionInfo(Node *ast)
 
     // push function data into upper scope for future search and validation
     // we do that only after we validate the function block!
-    SymbEntry *newEntry = calloc(1,sizeof(SymbEntry));
+    SymbEntry *newEntry = calloc(1, sizeof(SymbEntry));
     newEntry->name = name;
     newEntry->data = data;
-    
+
     insert((*currentScope)->next_scope, newEntry);
-    current_function=newEntry->data;
+    current_function = newEntry->data;
 
     return newEntry;
 }
@@ -266,7 +266,7 @@ bool validateSameType(Node *ast)
 
     if (getType(ast->left) != getType(ast->right))
     {
-        fprintf(stderr, "Different types were found on '%s'\n", ast->data);
+        fprintf(stderr, "line: %d: Different types were found on '%s'\n", ast->line, ast->data);
         return false;
     }
     return true;
@@ -349,14 +349,14 @@ type getType(Node *expr)
         return CHAR;
 
     if (strcmp(expr->left->data, "FUNCTION CALL NO PARAMS") == 0)
-        return handleEmptyFunctionCall(expr->left->left->left);
+        return handleEmptyFunctionCall(expr->left->left->left, expr->left->left->left->line);
 
     if (strcmp(expr->left->data, "IDENT") == 0)
     {
         SymbEntry *entry = find(currentScope, expr->left->left->data);
         if (!entry)
         {
-            fprintf(stderr, "Variable '%s' was not declared!\n", expr->left->left->data);
+            fprintf(stderr, "line: %d: Variable '%s' was not declared!\n", expr->left->left->line, expr->left->left->data);
             return -1;
         }
         // printf("TYPE of %s: %s\n", entry->name, entry->var_type);
@@ -368,7 +368,7 @@ type getType(Node *expr)
 
         SymbEntry *entry = find(currentScope, expr->left->left->left->data);
         if (!entry)
-            fprintf(stderr, "Variable '%s' is undefined!\n", expr->left->left->data);
+            fprintf(stderr, "line: %d: Variable '%s' is undefined!\n", expr->left->left->line, expr->left->left->data);
         return CHAR;
     }
 
@@ -380,13 +380,13 @@ bool validateIsInt(Node *ast)
 {
 
     if (getType(ast->left) != INTEGER)
-        fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
     if (!ast->right)
         return true;
 
     if (getType(ast->right) != INTEGER)
     {
-        fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
         return false;
     }
     return true;
@@ -396,7 +396,7 @@ bool validateIsPtr(Node *ast)
 {
     if (getType(ast) == INT_PTR || getType(ast) == CHAR_PTR)
         return true;
-    fprintf(stderr, "Bad type found on '^'\n");
+    fprintf(stderr, "line: %d: Bad type found on '^'\n", ast->line);
     return false;
 }
 
@@ -404,7 +404,7 @@ bool validateIsSimple(Node *left)
 {
     if (getType(left) == INTEGER || getType(left) == CHAR)
         return true;
-    fprintf(stderr, "Bad type found on '&'\n");
+    fprintf(stderr, "line: %d: Bad type found on '&'\n", left->line);
     return false;
 }
 
@@ -414,7 +414,7 @@ bool validateIsBoolean(Node *ast)
     {
         if (getType(ast->left) != BOOLEAN || getType(ast->right) != BOOLEAN)
         {
-            fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+            fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
             return false;
         }
     }
@@ -423,7 +423,7 @@ bool validateIsBoolean(Node *ast)
     {
         if (getType(ast) != BOOLEAN)
         {
-            fprintf(stderr, "Bad type found on '%s'\n", ast->data);
+            fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
             return false;
         }
     }
@@ -498,7 +498,7 @@ bool handlePtrAssigment(Node *ast)
     if (getType(ast->left) == INT_PTR && getType(ast->right) == INTEGER)
         return true;
 
-    fprintf(stderr, "Bad type on '^='\n");
+    fprintf(stderr, "line: %d: Bad type on '^='\n", ast->line);
 }
 
 bool checkReturn(Node *ast)
@@ -526,7 +526,6 @@ void handleFunctionBlock(Node *block, SymbEntry *func_data)
     typecheck(block->left);
     typecheck(block->right);
     pop(currentScope); // pop block scope
-    
 }
 
 function *findFunctionReturnType()
@@ -552,7 +551,7 @@ type typecheck(Node *ast)
         typecheck(ast->right);
 
         if (!find(currentScope, "main"))
-            fprintf(stderr, "'main' was not found!\n");
+            fprintf(stderr, "line: %d: 'main' was not found!\n", ast->line);
         pop(currentScope);
     }
 
@@ -560,12 +559,12 @@ type typecheck(Node *ast)
     {
         function *f = findFunctionReturnType();
         if (!f)
-            fprintf(stderr, "'return' unexpected\n");
+            fprintf(stderr, "line: %d: 'return' unexpected\n", ast->line);
         else
         {
 
             if (getType(ast->left) != charToType(f->r_value))
-                fprintf(stderr, "Bad 'return' type\n");
+                fprintf(stderr, "line: %d: Bad 'return' type\n", ast->line);
         }
     }
 
@@ -573,12 +572,12 @@ type typecheck(Node *ast)
     {
         function *f = findFunctionReturnType();
         if (!f)
-            fprintf(stderr, "'return' unexpected\n");
+            fprintf(stderr, "line: %d: 'return' unexpected\n", ast->line);
         else
         {
 
             if (VOID != charToType(f->r_value))
-                fprintf(stderr, "Bad 'return' type\n");
+                fprintf(stderr, "line: %d: Bad 'return' type\n", ast->line);
         }
     }
 
@@ -594,15 +593,11 @@ type typecheck(Node *ast)
         if (!searchScope(currentScope, ast->left->middle->data) && function_data)
         {
             if (!checkReturn(ast->right))
-                fprintf(stderr, "Return was expected\n");
+                fprintf(stderr, "line: %d: Return was expected\n", ast->line);
             handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
- 
         }
-      
     }
-        
-
 
     else if (strcmp("BLOCK", ast->data) == 0)
     {
@@ -624,21 +619,21 @@ type typecheck(Node *ast)
     else if (strcmp("IF", ast->data) == 0)
     {
         if (typecheck(ast->left) != BOOLEAN)
-            fprintf(stderr, "Bad type found on 'if' statement\n");
+            fprintf(stderr, "line: %d: Bad type found on 'if' statement\n", ast->line);
         typecheck(ast->right);
     }
 
     else if (strcmp("WHILE LOOP", ast->data) == 0)
     {
         if (typecheck(ast->left) != BOOLEAN)
-            fprintf(stderr, "Bad type found on 'while' statement\n");
+            fprintf(stderr, "line: %d: Bad type found on 'while' statement\n", ast->line);
         typecheck(ast->right);
     }
 
     else if (strcmp("DO WHILE", ast->data) == 0)
     {
         if (handleExpr(ast->right) != BOOLEAN)
-            fprintf(stderr, "Bad type found on 'while' statement\n");
+            fprintf(stderr, "line: %d: Bad type found on 'while' statement\n", ast->line);
         typecheck(ast->left);
     }
 
@@ -647,7 +642,7 @@ type typecheck(Node *ast)
         Node *fordata = ast->left;
         typecheck(fordata->left);
         if (handleExpr(fordata->middle) != BOOLEAN)
-            fprintf(stderr, "Bad type found on 'for' statement\n");
+            fprintf(stderr, "line: %d: Bad type found on 'for' statement\n", ast->line);
         typecheck(ast->right);
     }
 
@@ -655,7 +650,7 @@ type typecheck(Node *ast)
         handleVarDecl(ast);
 
     else if (strcmp("FUNCTION CALL NO PARAMS", ast->data) == 0)
-        return handleEmptyFunctionCall(ast->left->left);
+        return handleEmptyFunctionCall(ast->left->left, ast->left->left->line);
 
     else if (strcmp("FUNCTION CALL", ast->data) == 0)
         return handleFunctionCall(ast);
