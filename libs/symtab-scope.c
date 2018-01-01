@@ -3,6 +3,8 @@
 #include <string.h>
 #include "./symtab-scope.h"
 
+extern SymbEntry *currentFunction;
+
 bool searchScope(ScopeStack **currentScope, char *name)
 {
     SymbEntry *symb_walker;
@@ -127,6 +129,32 @@ void push(ScopeStack **currentScope, ScopeStack *newScope)
 void pop(ScopeStack **currentScope)
 {
     //printf("POP: '%s'\n", (*currentScope)->name);
+
+    if (strcmp("FUNCTION BLOCK", (*currentScope)->name) == 0)
+    {
+
+        // reset currentFunction ptr
+        currentFunction = NULL;
+        // swtich to the current scope function
+        ScopeStack *scopesRunner = (*currentScope);
+        while (scopesRunner != NULL)
+        {
+            // while we are not in global scope
+            // search for a function wrapper
+            SymbEntry *tableRunner = scopesRunner->table_ptr;
+            // get the last entry
+            while (tableRunner && tableRunner->nextEntry)
+                tableRunner = tableRunner->nextEntry;
+
+            if (tableRunner && tableRunner->data)
+                // found a function, assing
+                currentFunction = tableRunner;
+
+            scopesRunner = scopesRunner->next_scope;
+        }
+
+        //printf("SWITCHINGT TO NEW FUNCTION PTR: %s\n", currentFunction->name);
+    }
     SymbEntry *runner = (*currentScope)->table_ptr;
     ScopeStack *ptr = *currentScope;
     *currentScope = (*currentScope)->next_scope;

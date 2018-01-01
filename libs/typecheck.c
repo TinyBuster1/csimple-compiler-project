@@ -9,20 +9,7 @@ bool MAIN_FLAG = false;
 /*****************************/
 // CREATE THE SCOPES STACK LIST
 ScopeStack **currentScope;
-function *current_function;
-
-// function* findNextFunc(){
-//     SymbEntry * runner = (*currentScope)->table_ptr;
-   
-//     while(runner){
-//         if(runner->data){
-//              printf("%s----\n\n",((*currentScope)->name));
-//             return runner->data;
-//         }
-//         runner->nextEntry;
-//     }
-//     return NULL;
-// }
+SymbEntry *currentFunction;
 
 void printArgsList(args *list)
 {
@@ -254,6 +241,8 @@ SymbEntry *handleFunctionInfo(Node *ast)
 
     // creating scope for function args
     createScope(ast->data);
+    //printf("SETTING NEW FUNCTION PTR: %s\n", name);
+
     // push function arguments into args scope
     args *runner = data->args;
     while (runner)
@@ -269,14 +258,15 @@ SymbEntry *handleFunctionInfo(Node *ast)
     newEntry->data = data;
 
     insert((*currentScope)->next_scope, newEntry);
-    current_function = newEntry->data;
+    currentFunction = newEntry;
 
     return newEntry;
 }
-bool validateIsString(Node* ast){
+bool validateIsString(Node *ast)
+{
 
     if (getType(ast->left) != STRING)
-    {         
+    {
         fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
         return false;
     }
@@ -296,13 +286,12 @@ bool validateSameType(Node *ast)
 
     if (getType(ast->left) != getType(ast->right))
     {
-        
+
         fprintf(stderr, "line: %d: Different types were found on '%s'\n", ast->line, ast->data);
         return false;
     }
     return true;
 }
-
 
 type charToType(char *type)
 {
@@ -383,6 +372,9 @@ type getType(Node *expr)
     if (strcmp(expr->left->data, "FUNCTION CALL NO PARAMS") == 0)
         return handleEmptyFunctionCall(expr->left->left->left, expr->left->left->left->line);
 
+    if (strcmp("FUNCTION CALL", expr->left->data) == 0)
+        return handleFunctionCall(expr->left);
+
     if (strcmp(expr->left->data, "IDENT") == 0)
     {
         SymbEntry *entry = find(currentScope, expr->left->left->data);
@@ -410,8 +402,9 @@ type getType(Node *expr)
 
 bool validateIsInt(Node *ast)
 {
-    
-    if (getType(ast->left) != INTEGER){
+
+    if (getType(ast->left) != INTEGER)
+    {
         fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
         return false;
     }
@@ -442,8 +435,10 @@ bool validateIsSimple(Node *left)
     return false;
 }
 
-bool validateABS(Node* ast){
-    if (getType(ast->left) != INTEGER && getType(ast->left) != STRING){
+bool validateABS(Node *ast)
+{
+    if (getType(ast->left) != INTEGER && getType(ast->left) != STRING)
+    {
         fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
         return false;
     }
@@ -504,27 +499,29 @@ type handleExpr(Node *ast)
     if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    if (strcmp(ast->data, "ABS") == 0 && validateABS(ast)){
+    if (strcmp(ast->data, "ABS") == 0 && validateABS(ast))
+    {
         return INTEGER;
     }
 
-    if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left)){
+    if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left))
+    {
         type t;
-        t= getType(ast->left);
-        if(t==INT_PTR)
+        t = getType(ast->left);
+        if (t == INT_PTR)
             return INTEGER;
         else
             return CHAR;
     }
 
-    if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left)){
+    if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
+    {
         type t;
-        t= getType(ast->left);
-        if(t==INTEGER)
+        t = getType(ast->left);
+        if (t == INTEGER)
             return INT_PTR;
         else
             return CHAR_PTR;
-        
     }
 
     if (strcmp(ast->data, "!") == 0 && validateIsBoolean(ast->left))
@@ -591,11 +588,6 @@ void handleFunctionBlock(Node *block, SymbEntry *func_data)
     pop(currentScope); // pop block scope
 }
 
-function *findFunctionReturnType()
-{
-    return current_function;
-}
-
 type typecheck(Node *ast)
 {
 
@@ -620,27 +612,25 @@ type typecheck(Node *ast)
 
     else if (strcmp("RETURN", ast->data) == 0)
     {
-        function *f = findFunctionReturnType();
-        if (!f)
+        if (!currentFunction)
             fprintf(stderr, "line: %d: 'return' unexpected\n", ast->line);
         else
         {
 
-            if (getType(ast->left) != charToType(f->r_value))
-                fprintf(stderr, "line: %d: Bad 'return' type\n", ast->line);
+            if (getType(ast->left) != charToType(currentFunction->data->r_value))
+                fprintf(stderr, "line: %d: Expected 'return' type to be %s\n", ast->line, currentFunction->data->r_value);
         }
     }
 
     else if (strcmp("RETURN VOID", ast->data) == 0)
     {
-        function *f = findFunctionReturnType();
-        if (!f)
+        if (!currentFunction)
             fprintf(stderr, "line: %d: 'return' unexpected\n", ast->line);
         else
         {
 
-            if (VOID != charToType(f->r_value))
-                fprintf(stderr, "line: %d: Bad 'return' type\n", ast->line);
+            if (VOID != charToType(currentFunction->data->r_value))
+                fprintf(stderr, "line: %d: Expected 'return' type to be %s\n", ast->line, currentFunction->data->r_value);
         }
     }
 
@@ -659,8 +649,6 @@ type typecheck(Node *ast)
                 fprintf(stderr, "line: %d: Return was expected\n", ast->line);
             handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
-            // current_function=findNextFunc();
-            // printf("=====%s\n",current_function->r_value);
         }
     }
 
