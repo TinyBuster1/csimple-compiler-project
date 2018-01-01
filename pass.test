@@ -135,4 +135,6 @@ int main()
 {
 	int a;
 	a = foo2();
+
+	return 1;
 }
