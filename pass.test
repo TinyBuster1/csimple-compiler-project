@@ -1,7 +1,3 @@
-/* long
-comment long
-comment */
-
 boolean foo1(int a, int d, int y, char c)
 {
 	char x, b;
@@ -27,25 +23,25 @@ int fee1(int i, int j, int k)
 {
     char x, k;
     boolean fee2(int l, int m, int n)
-    {
-	boolean x, j, n;
-	k = '@';
-	i = l + l;
-	// i = j + 1;
-	// i = k + 1; 
-	if ((k == '*') || (x != false) && (l+m < i)){
-		x = l < m;
-	}
-	//return m;
+	{
+		boolean x, j, n;
+		k = '@';
+		i = l + l;
+		// i = j + 1;
+		// i = k + 1; 
+		if ((k == '*') || (x != false) && ((l+m) < i)){
+			x = l < m;
+		}
+		//return m;
         return x;
     }
     {
-	boolean k;
-	k = fee2(5,i,j);
-	// x = fee2(5,i,j); 
-	// k = fee2(5,i); 
-	// k = fee2(5,x,j); 
-     }
+		boolean k;
+		k = fee2(5,i,j);
+		// x = fee2(5,i,j); 
+		// k = fee2(5,i); 
+		// k = fee2(5,x,j); 
+    }
     // n = false; 
     x = '#';	
     //return k;
@@ -55,18 +51,18 @@ int fee1(int i, int j, int k)
 
 int foo3(int i, int j, int k)
 {
-    int square(int t) /* procedure declarations */ 
+    int square(int t) 
     {
         int temp;
         temp = t* t;
         return temp;
     }
 
-    int total;                       /* variable declarations */
+    int total;                       
     boolean bool;
     bool = foo1(i,j,k,'^');
     // j = foo2(); 
-    total = square(i+j+k);                    /* statements */
+    total = square(i+j+k);                    
     return 0;
 }
 
@@ -79,7 +75,7 @@ int foo2()
     j=0;
     cnt = 1;
     while(i<|s1|){
-	while(j<|s2|/2){
+	while(j<(|s2|/2)){
 	    if (s1[i] == s2[j]){
 		cnt = cnt*2;
 	    }
@@ -102,7 +98,7 @@ void foo4()
 	//^x = 7;
 	//&x = y;
 	//y = x;
-	if (&x == y && ^y == x){
+	if ((&x == y) && (^y == x)){
 		^y = 9;
 	}
      	{
@@ -132,6 +128,7 @@ void foo4()
 		 // z = &x;
 	}
      }
+	 return;
 }
 
 
@@ -140,5 +137,5 @@ void main()
 {
     int a;
     a = foo2();
-    return;
+	return;
 }

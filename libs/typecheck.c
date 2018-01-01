@@ -11,6 +11,19 @@ bool MAIN_FLAG = false;
 ScopeStack **currentScope;
 function *current_function;
 
+// function* findNextFunc(){
+//     SymbEntry * runner = (*currentScope)->table_ptr;
+   
+//     while(runner){
+//         if(runner->data){
+//              printf("%s----\n\n",((*currentScope)->name));
+//             return runner->data;
+//         }
+//         runner->nextEntry;
+//     }
+//     return NULL;
+// }
+
 void printArgsList(args *list)
 {
     while (list)
@@ -260,17 +273,36 @@ SymbEntry *handleFunctionInfo(Node *ast)
 
     return newEntry;
 }
+bool validateIsString(Node* ast){
+
+    if (getType(ast->left) != STRING)
+    {         
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
+        return false;
+    }
+    if (!ast->right)
+        return true;
+
+    if (getType(ast->right) != STRING)
+    {
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
+        return false;
+    }
+    return true;
+}
 
 bool validateSameType(Node *ast)
 {
 
     if (getType(ast->left) != getType(ast->right))
     {
+        
         fprintf(stderr, "line: %d: Different types were found on '%s'\n", ast->line, ast->data);
         return false;
     }
     return true;
 }
+
 
 type charToType(char *type)
 {
@@ -378,9 +410,11 @@ type getType(Node *expr)
 
 bool validateIsInt(Node *ast)
 {
-
-    if (getType(ast->left) != INTEGER)
+    
+    if (getType(ast->left) != INTEGER){
         fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
+        return false;
+    }
     if (!ast->right)
         return true;
 
@@ -408,6 +442,21 @@ bool validateIsSimple(Node *left)
     return false;
 }
 
+bool validateABS(Node* ast){
+    if (getType(ast->left) != INTEGER && getType(ast->left) != STRING){
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
+        return false;
+    }
+    if (!ast->right)
+        return true;
+
+    if (getType(ast->right) != INTEGER && getType(ast->right) != STRING)
+    {
+        fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
+        return false;
+    }
+    return true;
+}
 bool validateIsBoolean(Node *ast)
 {
     if (ast->right)
@@ -455,14 +504,28 @@ type handleExpr(Node *ast)
     if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
         return INTEGER;
 
-    if (strcmp(ast->data, "ABS") == 0 && validateIsInt(ast))
+    if (strcmp(ast->data, "ABS") == 0 && validateABS(ast)){
         return INTEGER;
+    }
 
-    if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left))
-        return getType(ast->left);
+    if (strcmp(ast->data, "^") == 0 && validateIsPtr(ast->left)){
+        type t;
+        t= getType(ast->left);
+        if(t==INT_PTR)
+            return INTEGER;
+        else
+            return CHAR;
+    }
 
-    if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
-        return getType(ast->left);
+    if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left)){
+        type t;
+        t= getType(ast->left);
+        if(t==INTEGER)
+            return INT_PTR;
+        else
+            return CHAR_PTR;
+        
+    }
 
     if (strcmp(ast->data, "!") == 0 && validateIsBoolean(ast->left))
         return BOOLEAN;
@@ -596,6 +659,8 @@ type typecheck(Node *ast)
                 fprintf(stderr, "line: %d: Return was expected\n", ast->line);
             handleFunctionBlock(ast->right, function_data);
             pop(currentScope); // pop function scope
+            // current_function=findNextFunc();
+            // printf("=====%s\n",current_function->r_value);
         }
     }
 
