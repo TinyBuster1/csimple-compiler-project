@@ -7,20 +7,19 @@ boolean foo1(int a, int d, int y, char c)
 	char x, b;
 	boolean res;
 
-//	b = '&';
+	b = '&';
 	// a = x;  
 	// b = 8; 
-//	a = (y * 7)/a-y;
+	a = (y * 7)/a-y;
 	// a = (y * 7)/b-y; 
 	// a = (y * 7)/a-c; 
 
-	//res = (b == c) && (y > a);
+	res = (b == c) && (y > a);
 	// res = (b == c) && (y + a); 
 	// 3 + 6 = 9; 
 	// ^x = 6; 
 	
-    //	return res ;
-        
+    	return res ;
 }
 
 
@@ -29,16 +28,16 @@ int fee1(int i, int j, int k)
     char x, k;
     boolean fee2(int l, int m, int n)
     {
-        boolean x, j, n;
-        k = '@';
-        i = l + l;
-        // i = j + 1;
-        // i = k + 1; 
-        if ((k == '*') || (x != false) && (l+m < i)){
-            x = l < m;
-        }
-        //return m;
-            return x;
+	boolean x, j, n;
+	k = '@';
+	i = l + l;
+	// i = j + 1;
+	// i = k + 1; 
+	if ((k == '*') || (x != false) && (l+m < i)){
+		x = l < m;
+	}
+	//return m;
+        return x;
     }
     {
 	boolean k;
@@ -140,6 +139,6 @@ void foo4()
 void main()
 {
     int a;
-   //    a = foo2();
-   return;
+    a = foo2();
+    return;
 }
