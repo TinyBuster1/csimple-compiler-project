@@ -241,7 +241,7 @@ SymbEntry *handleFunctionInfo(Node *ast)
 
     // creating scope for function args
     createScope(ast->data);
-    //printf("SETTING NEW FUNCTION PTR: %s\n", name);
+    // printf("SETTING NEW FUNCTION PTR: %s\n", name);
 
     // push function arguments into args scope
     args *runner = data->args;
@@ -575,6 +575,10 @@ bool checkReturn(Node *ast)
     if (ast->middle && strcmp("function", ast->middle->data) != 0 && checkReturn(ast->middle))
         return true;
     if (ast->right && strcmp("FUNCTION", ast->right->data) != 0 && checkReturn(ast->right))
+        return true;
+
+    // no return on void functions
+    if (strcmp("void", currentFunction->data->r_value) == 0)
         return true;
 
     return false;

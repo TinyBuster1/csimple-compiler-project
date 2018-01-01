@@ -128,9 +128,9 @@ void push(ScopeStack **currentScope, ScopeStack *newScope)
 
 void pop(ScopeStack **currentScope)
 {
-    //printf("POP: '%s'\n", (*currentScope)->name);
+    // printf("POP: '%s'\n", (*currentScope)->name);
 
-    if (strcmp("FUNCTION BLOCK", (*currentScope)->name) == 0)
+    if (strcmp("FUNCTION INFO", (*currentScope)->name) == 0)
     {
 
         // reset currentFunction ptr
@@ -153,7 +153,15 @@ void pop(ScopeStack **currentScope)
             scopesRunner = scopesRunner->next_scope;
         }
 
-        //printf("SWITCHINGT TO NEW FUNCTION PTR: %s\n", currentFunction->name);
+        if (strcmp("GLOBAL", (*currentScope)->next_scope->name) == 0)
+        {
+            currentFunction = NULL;
+            // printf("SWITCHINGT TO NEW FUNCTION PTR: %s\n", currentFunction->name);
+        }
+        else
+        {
+            // printf("SWITCHINGT TO GLOBAL\n");
+        }
     }
     SymbEntry *runner = (*currentScope)->table_ptr;
     ScopeStack *ptr = *currentScope;

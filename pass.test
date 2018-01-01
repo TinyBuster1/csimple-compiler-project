@@ -3,7 +3,7 @@ boolean foo1(int a, int d, int y, char c)
 	char x, b;
 	boolean res;
 
-	b = '&';
+	// b = '&';
 	// a = x;
 	// b = 8;
 	a = (y * 7) / a - y;
@@ -37,7 +37,7 @@ int fee1(int i, int j, int k)
 	}
 	{
 		boolean k;
-		// k = fee2(5, i, j);
+		k = fee2(5, i, j);
 		// x = fee2(5,i,j);
 		// k = fee2(5,i);
 		// k = fee2(5,x,j);
@@ -129,12 +129,10 @@ void foo4()
 			// z = &x;
 		}
 	}
-	return;
 }
 
-void main()
+int main()
 {
 	int a;
 	a = foo2();
-	return;
 }
