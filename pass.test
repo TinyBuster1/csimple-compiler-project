@@ -10,7 +10,7 @@ boolean func1(int a, int d, int y, char c)
 	// a = (y * 7)/b-y;
 	// a = (y * 7)/a-c;
 
-	fr = (b == c) && (y > a);
+	// fr = (b == c) && (y > a);
 	// fr = (b == c) && (y + a);
 	// 3 + 6 = 9;
 	// ^x = 6;
