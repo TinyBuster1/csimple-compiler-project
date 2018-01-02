@@ -44,7 +44,7 @@ void printInOrder(Node *tree, int indent)
 {
     if (tree)
     {
-        printf("line: %d |   ", tree->line);
+        // printf("line: %d |   ", tree->line);
 
         for (int i = 0; i < indent; i++)
             printf(" | ");
