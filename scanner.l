@@ -14,7 +14,7 @@ D   [0-9]
 %%
     /* tokens */
     /* COMMENTS */
-"//".*           { /* DO NOTHING */ }
+"//"[^\n]*           { /* DO NOTHING */ }
 [/][*][^(*|\/\/)]*[*]+([^*/][^*]*[*]+)*[/]       { /* DO NOTHING */ }               
     /* TYPES */
 "void"|"boolean"|"char"|"string"|"int"|"intp"|"charp" { yylval.string = strdup(yytext); return TYPE; }
