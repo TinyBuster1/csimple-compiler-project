@@ -8,6 +8,7 @@
 typedef struct Node
 {
     char *data;
+    int line;
     struct Node *left, *middle, *right, *four;
 } Node;
 // binary tree code declerations
