@@ -5,6 +5,7 @@
 
 	#include "./libs/ast.h"
 	#include "./libs/typecheck.h"
+	#include "./libs/tac.h"
 
 	extern int yylex();
 	extern int yylineno;
@@ -181,6 +182,6 @@ int main() {
 	/*****************************/
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
 	typecheck(ast);
-	
+	printf("%s", genTac(ast));
   	return 0;
 }
