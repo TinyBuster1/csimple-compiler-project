@@ -1,16 +1,6 @@
 #ifndef SYMB_TAB_H_
 #define SYMB_TAB_H_
 
-typedef enum type {
-    VOID,
-    BOOLEAN,
-    CHAR,
-    STRING,
-    INTEGER,
-    INT_PTR,
-    CHAR_PTR
-} type;
-
 typedef enum bool {
     false,
     true

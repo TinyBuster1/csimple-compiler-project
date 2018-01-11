@@ -349,31 +349,52 @@ type getType(Node *expr)
 {
 
     if (strcmp(expr->left->data, "EXPR") == 0)
-        return handleExpr(expr->left);
+        return expr->type = handleExpr(expr->left);
 
     if (strcmp(expr->left->data, "boolean") == 0)
+    {
+        expr->type = BOOLEAN;
         return BOOLEAN;
+    }
 
     if (strcmp(expr->left->data, "charp") == 0)
+    {
+        expr->type = CHAR_PTR;
         return CHAR_PTR;
+    }
 
     if (strcmp(expr->left->data, "intp") == 0)
+    {
+        expr->type = INT_PTR;
         return INT_PTR;
+    }
 
     if (strcmp(expr->left->data, "INTEGER") == 0)
+    {
+        expr->type = INTEGER;
         return INTEGER;
+    }
 
     if (strcmp(expr->left->data, "STRING") == 0)
+    {
+        expr->type = STRING;
         return STRING;
+    }
 
     if (strcmp(expr->left->data, "CHAR") == 0)
+    {
+        expr->type = CHAR;
         return CHAR;
+    }
 
     if (strcmp(expr->left->data, "FUNCTION CALL NO PARAMS") == 0)
-        return handleEmptyFunctionCall(expr->left->left->left, expr->left->left->left->line);
+    {
+        expr->type = handleEmptyFunctionCall(expr->left->left->left, expr->left->left->left->line);
+        return expr->type;
+    }
 
     if (strcmp("FUNCTION CALL", expr->left->data) == 0)
-        return handleFunctionCall(expr->left);
+        return expr->type = handleFunctionCall(expr->left);
 
     if (strcmp(expr->left->data, "IDENT") == 0)
     {
@@ -384,7 +405,7 @@ type getType(Node *expr)
             return -1;
         }
         // printf("TYPE of %s: %s\n", entry->name, entry->var_type);
-        return charToType(entry->var_type);
+        return expr->type = charToType(entry->var_type);
     }
 
     if (strcmp(expr->left->data, "ARRAY ACCESS") == 0)
@@ -393,11 +414,12 @@ type getType(Node *expr)
         SymbEntry *entry = find(currentScope, expr->left->left->left->data);
         if (!entry)
             fprintf(stderr, "line: %d: Variable '%s' is undefined!\n", expr->left->left->line, expr->left->left->data);
+        expr->type = CHAR;
         return CHAR;
     }
 
     else
-        return handleExpr(expr->left);
+        return expr->type = handleExpr(expr->left);
 }
 
 bool validateIsInt(Node *ast)
@@ -479,7 +501,10 @@ type handleExpr(Node *ast)
 {
 
     if (strcmp("EXPR", ast->data) == 0)
-        return getType(ast);
+    {
+        ast->type = getType(ast);
+        return ast->type;
+    }
     // same on 2 sides
     if (strcmp(ast->data, "==") == 0 && validateSameType(ast))
         return BOOLEAN;
@@ -509,9 +534,15 @@ type handleExpr(Node *ast)
         type t;
         t = getType(ast->left);
         if (t == INT_PTR)
+        {
+            ast->type = INTEGER;
             return INTEGER;
+        }
         else
+        {
+            ast->type = CHAR;
             return CHAR;
+        }
     }
 
     if (strcmp(ast->data, "&") == 0 && validateIsSimple(ast->left))
@@ -519,9 +550,15 @@ type handleExpr(Node *ast)
         type t;
         t = getType(ast->left);
         if (t == INTEGER)
+        {
+            ast->type = INT_PTR;
             return INT_PTR;
+        }
         else
+        {
+            ast->type = CHAR_PTR;
             return CHAR_PTR;
+        }
     }
 
     if (strcmp(ast->data, "!") == 0 && validateIsBoolean(ast->left))
@@ -668,10 +705,16 @@ type typecheck(Node *ast)
     /* STOP REC */
 
     else if (strcmp("=", ast->data) == 0)
+    {
+        ast->type = getType(ast);
         validateSameType(ast);
+    }
 
     else if (strcmp("^=", ast->data) == 0)
+    {
+        ast->type = INTEGER;
         handlePtrAssigment(ast);
+    }
 
     else if (strcmp("IF", ast->data) == 0)
     {

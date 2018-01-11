@@ -177,11 +177,11 @@ int yyerror(const char *msg)
 }
 int main() {
   	yyparse();
-	printInOrder(ast, 0);
 	printf("\n\n");
+	typecheck(ast);
 	/*****************************/
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	typecheck(ast);
-	printf("%s", genTac(ast));
+	printInOrder(ast, 0);
+	printf("%s", genProg(ast));
   	return 0;
 }
