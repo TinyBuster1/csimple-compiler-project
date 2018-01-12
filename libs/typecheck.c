@@ -521,6 +521,9 @@ type handleExpr(Node *ast)
     if (strcmp(ast->data, "-") == 0 && validateIsInt(ast))
         return INTEGER;
 
+    if (strcmp(ast->data, "NEG") == 0 && validateIsInt(ast))
+        return INTEGER;
+
     if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
         return INTEGER;
 

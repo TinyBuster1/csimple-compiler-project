@@ -17,18 +17,24 @@ char *genStatment(Node *, int *);
 char *genFunc(Node *);
 char *genBlock(Node *, int *);
 char *genAss(Node *, int *);
+char *genReturn(Node *, int *);
 
 Tac *genExrp(Node *, int *);
+Tac *pushParams(Node *, int *);
 char *genTac(char *, char *, char *);
 
 int getSize(Node *);
 int getVarsSize(Node *);
 int getVarsCount(Node *);
 char *getId(Node *);
+char *parseUnary(char *);
 
 bool isMathNode(char *);
+bool isFuncCall(char *);
 bool isSimpleNode(char *);
 bool isPtrNode(char *);
+bool isBooleanNode(char *);
+bool isNegNode(char *);
 
 char *freshVar();
 #endif // TAC_H_
