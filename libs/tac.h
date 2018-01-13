@@ -15,9 +15,15 @@ char *genProg(Node *);
 char *genCode(Node *, int *);
 char *genStatment(Node *, int *);
 char *genFunc(Node *);
+Tac *genLhs(Node *, int *);
 char *genBlock(Node *, int *);
 char *genAss(Node *, int *);
 char *genReturn(Node *, int *);
+Tac *genStringIndex(Node *, int *);
+Tac *genFunctionCall(Node *, int *);
+
+Tac *genContent(Node *, int *);
+Tac *genAddress(Node *, int *);
 
 Tac *genExrp(Node *, int *);
 Tac *pushParams(Node *, int *);

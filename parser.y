@@ -177,7 +177,6 @@ int yyerror(const char *msg)
 }
 int main() {
   	yyparse();
-	printf("\n\n");
 	typecheck(ast);
 	/*****************************/
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK

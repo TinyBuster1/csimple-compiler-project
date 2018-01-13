@@ -1,24 +1,6 @@
-int soo(int x, int y, int z){
-	return x * y * z;
-}
-
-int goo(int x, int y){
-	return x * y;
-}
-
-int moo(int x){
-	return x;
-}
-
-int foo(){
-	return 1;
-}
-
 void main()
 {
-	int z, a,b,c;
-	// z = foo();
-	// a = moo(1);	
-	b = goo(foo(),moo(1), goo(1,2));
-	//c = zoo(1,moo(1), goo(1,2));
+	string a[1];
+	a[1] = a[2];
+
 }

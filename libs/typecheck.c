@@ -414,6 +414,8 @@ type getType(Node *expr)
         SymbEntry *entry = find(currentScope, expr->left->left->left->data);
         if (!entry)
             fprintf(stderr, "line: %d: Variable '%s' is undefined!\n", expr->left->left->line, expr->left->left->data);
+
+        expr->left->right->type = INTEGER;
         expr->type = CHAR;
         return CHAR;
     }
