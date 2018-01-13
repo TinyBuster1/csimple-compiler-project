@@ -1,4 +1,20 @@
+int foo()
+{
+	int a;
+	a = 999;
+
+	for (a = 1; a < 10; a = a + 1)
+	{
+		a = 50;
+	}
+	a = 100;
+
+	return a;
+}
+
 void main()
 {
-	int a, b;
+	int a;
+	a = foo();
+	foo();
 }
