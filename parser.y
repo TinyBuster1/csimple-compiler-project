@@ -5,6 +5,7 @@
 
 	#include "./libs/ast.h"
 	#include "./libs/typecheck.h"
+	#include "./libs/tac.h"
 
 	extern int yylex();
 	extern int yylineno;
@@ -131,7 +132,7 @@ expr_node: iden_name {$$ = $1;}
 	| CHAR_LITERAL {$$ = makeParentNode("CHAR",makeBaseLeaf($1));}
 	| STRING_LITERAL {$$ = makeParentNode("STRING",makeBaseLeaf($1));}
 	| NULL_TYPE { $$ = makeBaseLeaf("NULL"); }
-	| MINUS expr %prec NEG { $$ = makeParentNode("-", $2); }
+	| MINUS expr %prec NEG { $$ = makeParentNode("NEG", $2); }
     | expr PLUS expr { $$ = makePairNode("+",$1,$3); }
     | expr MUL expr { $$ = makePairNode("*",$1,$3); }
     | expr MINUS expr { $$ = makePairNode("-",$1,$3); }
@@ -153,8 +154,8 @@ expr_node: iden_name {$$ = $1;}
 	;
 
 ident_type:	TYPE {$$ = makeBaseLeaf($1);};
-bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("bool_true"); }
-          | BOOL_FALSE { $$ = makeBaseLeaf("bool_false"); }
+bool_type:	BOOL_TRUE { $$ = makeBaseLeaf("true"); }
+          | BOOL_FALSE { $$ = makeBaseLeaf("false"); }
 		  ;
 iden_name:	IDENTIFIER {$$ = makeParentNode("IDENT", makeBaseLeaf($1));}
 		| IDENTIFIER arr_index {$$ = makePairNode("ARRAY ACCESS",makeParentNode("IDENT", makeBaseLeaf($1)), $2);}
@@ -176,11 +177,10 @@ int yyerror(const char *msg)
 }
 int main() {
   	yyparse();
-	printInOrder(ast, 0);
-	printf("\n\n");
+	typecheck(ast);
 	/*****************************/
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	typecheck(ast);
-	
+	printInOrder(ast, 0);
+	printf("%s", genProg(ast));
   	return 0;
 }
