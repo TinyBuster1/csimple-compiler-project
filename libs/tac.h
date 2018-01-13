@@ -9,6 +9,7 @@ typedef struct Tac
 {
     char *code;
     char *var;
+    int lable;
 } Tac;
 
 char *genProg(Node *);
@@ -18,6 +19,7 @@ char *genFunc(Node *);
 Tac *genLhs(Node *, int *);
 char *genBlock(Node *, int *);
 char *genAss(Node *, int *);
+char *genLogicLoop(Node *, int *);
 char *genReturn(Node *, int *);
 Tac *genStringIndex(Node *, int *);
 Tac *genFunctionCall(Node *, int *);
@@ -30,8 +32,6 @@ Tac *pushParams(Node *, int *);
 char *genTac(char *, char *, char *);
 
 int getSize(Node *);
-int getVarsSize(Node *);
-int getVarsCount(Node *);
 char *getId(Node *);
 char *parseUnary(char *);
 

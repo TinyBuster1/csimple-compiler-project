@@ -3,6 +3,7 @@
 #include "./ast.h"
 
 int varCount, lableID;
+bool lableFlag;
 
 char *intToString(int x)
 {
@@ -17,6 +18,25 @@ char *freshVar()
     // auto allocation
     asprintf(&varName, "t%d", varCount++);
     return varName;
+}
+
+bool isLogicLoop(char *str)
+{
+    if (strcmp(str, "IF") == 0)
+        return true;
+    if (strcmp(str, "IF/ELSE") == 0)
+        return true;
+
+    if (strcmp(str, "WHILE LOOP") == 0)
+        return true;
+
+    if (strcmp(str, "DO WHILE") == 0)
+        return true;
+
+    if (strcmp(str, "FOR LOOP") == 0)
+        return true;
+
+    return false;
 }
 
 bool isMathNode(char *str)
@@ -80,6 +100,10 @@ bool isBooleanNode(char *str)
         return true;
     if (strcmp(str, "<=") == 0)
         return true;
+    if (strcmp(str, "||") == 0)
+        return true;
+    if (strcmp(str, "&&") == 0)
+        return true;
     return false;
 }
 
@@ -96,6 +120,7 @@ bool isNegNode(char *str)
 char *getId(Node *head)
 {
     printf("$$: getId\n");
+
     while (head)
     {
         if (isSimpleNode(head->data))
@@ -119,6 +144,7 @@ char *genProg(Node *ast)
 {
     printf("$$: genProg\n");
 
+    lableFlag = false;
     char *code = "";
     if (strcmp(ast->left->data, "CODE") == 0)
     {
@@ -159,6 +185,9 @@ char *genStatment(Node *stmtNode, int *size)
     printf("$$: genStatment\n");
     char *code = "";
 
+    if (strcmp(stmtNode->data, "BLOCK") == 0)
+        return genBlock(stmtNode, size);
+
     if (!stmtNode)
         return code;
 
@@ -197,8 +226,8 @@ char *genStatment(Node *stmtNode, int *size)
         return code;
     }
 
-    if (strcmp(stmtNode->data, "IF") == 0)
-        return "";
+    else if (isLogicLoop(stmtNode->data))
+        return genLogicLoop(stmtNode, size);
 
     else
         asprintf(&(code), "%s%s", code, "unhandled statement"); // handle right single block
@@ -223,21 +252,22 @@ char *genFunc(Node *funcNode)
 
     int size = 0;
     char *code = "";
-
     // for function inside a function
     // save global counters in temps
     int currVarCount = varCount;
     int currLableID = lableID;
     // reset counters
     varCount = 0;
-    lableID = 0; // lables start from line 2
-
+    lableID = 1; // lables start from line 2
     code = genBlock(funcNode->right, &size);
 
+    char *begin = "";
+    asprintf(&begin, "\tBeginFunc %d\n", size);
+    char *end = genTac("EndFunc ", "", "");
     varCount = currVarCount;
     lableID = currLableID;
 
-    asprintf(&code, "%s:\n\tBeginFunc %d\n%s\tEndFunc\n", funcNode->left->middle->left->data, size, code);
+    asprintf(&code, "%s:\n%s%s%s\n", funcNode->left->middle->left->data, begin, code, end);
     return code;
 }
 
@@ -324,7 +354,12 @@ char *genTac(char *idvar, char *str, char *evar)
 {
     printf("$$: genTac\n");
     char *code = "";
-    asprintf(&code, "L%d\t%s%s%s\n", lableID, idvar, str, evar);
+    if (lableFlag)
+        asprintf(&code, "L%d\t%s%s%s\n", lableID, idvar, str, evar);
+    else
+        asprintf(&code, "\t%s%s%s\n", idvar, str, evar);
+
+    lableFlag = false;
     lableID += 1;
     return code;
 }
@@ -394,6 +429,7 @@ Tac *genAddress(Node *addressNode, int *size)
 
 Tac *genContent(Node *contNode, int *size)
 {
+    printf("$$: genContent\n");
     Tac *E = calloc(1, sizeof(Tac));
     E->code = "";
     E->var = "";
@@ -403,6 +439,88 @@ Tac *genContent(Node *contNode, int *size)
     asprintf(&(E->var), "*(%s)", E->var);
     asprintf(&(E->code), "%s%s", E->code, genTac(E->var, "=", getId(contNode->left)));
     return E;
+}
+
+char *genLogicLoop(Node *logicNode, int *size)
+{
+    printf("$$: genLogicLoop\n");
+    char *code = "";
+    if (strcmp(logicNode->data, "IF") == 0)
+    {
+        Tac *ifTrue = calloc(1, sizeof(Tac));
+        Tac *logicExpr = genExrp(logicNode->left, size);
+        char *trueCode = genStatment(logicNode->right, size);
+        asprintf(&code, "%s", logicExpr->code);
+        asprintf(&code, "%s\tifZ %s Goto L%s\n%s", code, logicExpr->var, intToString(lableID), trueCode);
+        lableFlag = true;
+    }
+    else if (strcmp(logicNode->data, "IF/ELSE") == 0)
+    {
+        Tac *ifTrue = calloc(1, sizeof(Tac));
+        Tac *ifFalse = calloc(1, sizeof(Tac));
+        Tac *logicExpr = genExrp(logicNode->left, size);
+        char *trueCode = genStatment(logicNode->middle, size);
+        int falseLable = lableID;
+        lableFlag = true;
+        char *falseCode = genStatment(logicNode->right, size);
+
+        asprintf(&code, "%s", logicExpr->code);
+        asprintf(&code, "%s\tifZ %s Goto L%s\n%s\tGoto L%s\n%s", code, logicExpr->var, intToString(falseLable), trueCode, intToString(lableID), falseCode);
+        lableFlag = true;
+    }
+
+    else if (strcmp(logicNode->data, "WHILE LOOP") == 0)
+    {
+        Tac *ifTrue = calloc(1, sizeof(Tac));
+        Tac *ifFalse = calloc(1, sizeof(Tac));
+
+        int logicLable = lableID;
+        lableFlag = true;
+        Tac *logicExpr = genExrp(logicNode->left, size);
+        char *trueCode = genStatment(logicNode->right, size);
+        int falseLable = lableID;
+
+        asprintf(&code, "%s", logicExpr->code);
+        asprintf(&code, "%s\tifZ %s Goto L%s\n%s\tGoto L%s\n", code, logicExpr->var, intToString(falseLable), trueCode, intToString(logicLable));
+        lableFlag = true;
+    }
+
+    else if (strcmp(logicNode->data, "DO WHILE") == 0)
+    {
+        Tac *ifTrue = calloc(1, sizeof(Tac));
+        Tac *ifFalse = calloc(1, sizeof(Tac));
+
+        int doLable = lableID;
+        lableFlag = true;
+        char *trueCode = genStatment(logicNode->left, size);
+        Tac *logicExpr = genExrp(logicNode->right, size);
+        int afterdoLable = lableID;
+        lableFlag = true;
+        asprintf(&code, "%s", trueCode);
+        asprintf(&code, "%s%s\tifZ %s Goto L%d\n\tGoto L%d\n", code, logicExpr->code, logicExpr->var, afterdoLable, doLable);
+    }
+
+    else if (strcmp(logicNode->data, "FOR LOOP") == 0)
+    {
+
+        Node *logicData = logicNode->left;
+        char *forInit = genAss(logicData->left, size);
+        lableFlag = true;
+        int beforeLable = lableID;
+        Tac *forLogic = genExrp(logicData->middle, size);
+        char *forExpr = genAss(logicData->right, size);
+        char *trueCode = genStatment(logicNode->right, size);
+        int afterLable = lableID;
+        lableFlag = true;
+
+        asprintf(&code, "%s", forInit);
+        asprintf(&code, "%s%s", code, forLogic->code);
+        asprintf(&code, "%s\tifZ %s Goto L%d\n", code, forLogic->var, afterLable);
+        asprintf(&code, "%s%s", code, forExpr);
+        asprintf(&code, "%s%s\tGoto L%d\n", code, trueCode, beforeLable);
+    }
+
+    return code;
 }
 
 Tac *genExrp(Node *exprNode, int *size)
@@ -459,9 +577,9 @@ Tac *genExrp(Node *exprNode, int *size)
 
     else if (isBooleanNode(exprNode->left->data))
     {
-        E->var = freshVar();
         Tac *E1 = genExrp(exprNode->left->left, size);
         Tac *E2 = genExrp(exprNode->left->right, size);
+        E->var = freshVar();
         char *gen = "";
         asprintf(&gen, "%s %s %s", E1->var, exprNode->left->data, E2->var);
         asprintf(&(E->code), "%s%s%s", E1->code, E2->code, genTac(E->var, "=", gen));
@@ -495,24 +613,4 @@ int getSize(Node *expr)
         return 1;
 
     return 0;
-}
-
-int getVarsCount(Node *multiVars)
-{
-    printf("$$: getVarsCount\n");
-    if (strcmp(multiVars->left->data, "MULTIPLE IDENTIFIERS") == 0)
-        return getVarsCount(multiVars->left) + 1;
-
-    return 2;
-}
-
-int getVarsSize(Node *varsNode)
-{
-    printf("$$: getVarsSize\n");
-    int typeSize = getSize(varsNode->left);
-
-    if (strcmp(varsNode->right->data, "MULTIPLE IDENTIFIERS") == 0)
-        return typeSize * getVarsCount(varsNode->right);
-
-    return typeSize;
 }
