@@ -180,7 +180,7 @@ int main() {
 	typecheck(ast);
 	/*****************************/
 	// SEND PTR TO THE TOP OF THE STACK TO TYPECHECK
-	printInOrder(ast, 0);
+	// printInOrder(ast, 0);
 	printf("%s", genProg(ast));
   	return 0;
 }

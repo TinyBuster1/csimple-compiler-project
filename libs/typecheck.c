@@ -29,6 +29,7 @@ type handleEmptyFunctionCall(Node *func, int line)
         fprintf(stderr, "line: %d: Function '%s' was never declered!\n", line, func->data);
         return -1;
     }
+    func->type = charToType(entry->data->r_value);
     return charToType(entry->data->r_value);
 }
 
@@ -87,7 +88,7 @@ type handleFunctionCall(Node *ast)
         runner = runner->next;
         params = params->next;
     }
-
+    ast->type = charToType(function->data->r_value);
     return charToType(function->data->r_value);
 }
 
@@ -283,8 +284,9 @@ bool validateIsString(Node *ast)
 
 bool validateSameType(Node *ast)
 {
-
-    if (getType(ast->left) != getType(ast->right))
+    ast->left->type = getType(ast->left);
+    ast->right->type = getType(ast->right);
+    if (ast->right->type != ast->right->type)
     {
 
         fprintf(stderr, "line: %d: Different types were found on '%s'\n", ast->line, ast->data);
@@ -390,6 +392,7 @@ type getType(Node *expr)
     if (strcmp(expr->left->data, "FUNCTION CALL NO PARAMS") == 0)
     {
         expr->type = handleEmptyFunctionCall(expr->left->left->left, expr->left->left->left->line);
+        expr->left->type = expr->type;
         return expr->type;
     }
 
@@ -485,6 +488,7 @@ bool validateIsBoolean(Node *ast)
             fprintf(stderr, "line: %d: Bad type found on '%s'\n", ast->line, ast->data);
             return false;
         }
+        ast->right->type = BOOLEAN;
     }
 
     else
@@ -496,6 +500,7 @@ bool validateIsBoolean(Node *ast)
         }
     }
 
+    ast->left->type = BOOLEAN;
     return true;
 }
 
@@ -509,25 +514,43 @@ type handleExpr(Node *ast)
     }
     // same on 2 sides
     if (strcmp(ast->data, "==") == 0 && validateSameType(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
+    }
 
     if (strcmp(ast->data, "!=") == 0 && validateSameType(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
+    }
 
     if (strcmp(ast->data, "*") == 0 && validateIsInt(ast))
+    {
+        ast->type = INTEGER;
         return INTEGER;
+    }
 
     if (strcmp(ast->data, "/") == 0 && validateIsInt(ast))
+    {
+        ast->type = INTEGER;
         return INTEGER;
-
+    }
     if (strcmp(ast->data, "-") == 0 && validateIsInt(ast))
+    {
+        ast->type = INTEGER;
         return INTEGER;
-
+    }
     if (strcmp(ast->data, "NEG") == 0 && validateIsInt(ast))
+    {
+        ast->type = INTEGER;
         return INTEGER;
-
+    }
     if (strcmp(ast->data, "+") == 0 && validateIsInt(ast))
-        return INTEGER;
+    {
+        ast->type = INTEGER;
+        return ast->type;
+    }
 
     if (strcmp(ast->data, "ABS") == 0 && validateABS(ast))
     {
@@ -567,29 +590,47 @@ type handleExpr(Node *ast)
     }
 
     if (strcmp(ast->data, "!") == 0 && validateIsBoolean(ast->left))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
+    }
 
     if (strcmp(ast->data, "&&") == 0 && validateIsBoolean(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
+    }
 
     if (strcmp(ast->data, "||") == 0 && validateIsBoolean(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     if (strcmp(ast->data, ">") == 0 && validateIsInt(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     if (strcmp(ast->data, ">=") == 0 && validateIsInt(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     if (strcmp(ast->data, "<") == 0 && validateIsInt(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     if (strcmp(ast->data, "<=") == 0 && validateIsInt(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     if (strcmp(ast->data, "<=") == 0 && validateIsInt(ast))
+    {
+        ast->type = BOOLEAN;
         return BOOLEAN;
-
+    }
     return -1;
 }
 
@@ -666,6 +707,7 @@ type typecheck(Node *ast)
             if (getType(ast->left) != charToType(currentFunction->data->r_value))
                 fprintf(stderr, "line: %d: Expected 'return' type to be %s\n", ast->line, currentFunction->data->r_value);
         }
+        return charToType(currentFunction->data->r_value);
     }
 
     else if (strcmp("RETURN VOID", ast->data) == 0)
@@ -678,6 +720,7 @@ type typecheck(Node *ast)
             if (VOID != charToType(currentFunction->data->r_value))
                 fprintf(stderr, "line: %d: Expected 'return' type to be %s\n", ast->line, currentFunction->data->r_value);
         }
+        return charToType(currentFunction->data->r_value);
     }
 
     else if (strcmp("CODE", ast->data) == 0)
@@ -723,9 +766,21 @@ type typecheck(Node *ast)
 
     else if (strcmp("IF", ast->data) == 0)
     {
-        if (typecheck(ast->left) != BOOLEAN)
+        ast->left->type = typecheck(ast->left);
+        if (ast->left->type != BOOLEAN)
             fprintf(stderr, "line: %d: Bad type found on 'if' statement\n", ast->line);
-        typecheck(ast->right);
+        ast->right->type = typecheck(ast->right);
+        return ast->right->type;
+    }
+
+    else if (strcmp("IF/ELSE", ast->data) == 0)
+    {
+        ast->left->type = typecheck(ast->left);
+        if (ast->left->type != BOOLEAN)
+            fprintf(stderr, "line: %d: Bad type found on 'if' statement\n", ast->line);
+        ast->middle->type = typecheck(ast->middle);
+        ast->right->type = typecheck(ast->right);
+        return ast->right->type;
     }
 
     else if (strcmp("WHILE LOOP", ast->data) == 0)
@@ -755,11 +810,21 @@ type typecheck(Node *ast)
         handleVarDecl(ast);
 
     else if (strcmp("FUNCTION CALL NO PARAMS", ast->data) == 0)
-        return handleEmptyFunctionCall(ast->left->left, ast->left->left->line);
+    {
+        ast->type = handleEmptyFunctionCall(ast->left->left, ast->left->left->line);
+        return ast->type;
+    }
 
     else if (strcmp("FUNCTION CALL", ast->data) == 0)
-        return handleFunctionCall(ast);
+    {
+        ast->type = handleFunctionCall(ast);
+        return ast->type;
+    }
 
     else if (strcmp("EXPR", ast->data) == 0)
-        return handleExpr(ast->left);
+
+    {
+        ast->type = handleExpr(ast->left);
+        return ast->type;
+    }
 }

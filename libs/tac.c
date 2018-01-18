@@ -2,8 +2,15 @@
 #include "./tac.h"
 #include "./ast.h"
 
+typedef struct varsList
+{
+    char *var;
+    struct varsList *next;
+} varsList;
+
 int varCount, lableID;
 bool lableFlag;
+varsList *funcVars;
 
 char *intToString(int x)
 {
@@ -119,7 +126,7 @@ bool isNegNode(char *str)
 
 char *getId(Node *head)
 {
-    printf("$$: getId\n");
+    // printf("$$getId\n");
 
     while (head)
     {
@@ -142,7 +149,7 @@ char *parseUnary(char *str)
  */
 char *genProg(Node *ast)
 {
-    printf("$$: genProg\n");
+    // printf("$$genProg\n");
 
     lableFlag = false;
     char *code = "";
@@ -162,7 +169,7 @@ char *genProg(Node *ast)
  */
 char *genCode(Node *codeNode, int *size)
 {
-    printf("$$: genCode\n");
+    // printf("$$genCode\n");
     char *code = "";
 
     if (!codeNode)
@@ -182,7 +189,7 @@ char *genCode(Node *codeNode, int *size)
  */
 char *genStatment(Node *stmtNode, int *size)
 {
-    printf("$$: genStatment\n");
+    // printf("$$genStatment\n");
     char *code = "";
 
     if (strcmp(stmtNode->data, "BLOCK") == 0)
@@ -192,7 +199,9 @@ char *genStatment(Node *stmtNode, int *size)
         return code;
 
     if (strcmp(stmtNode->data, "FUNCTION") == 0)
+    {
         return genFunc(stmtNode);
+    }
 
     if (strcmp(stmtNode->data, "RETURN") == 0)
         return genReturn(stmtNode, size);
@@ -248,10 +257,11 @@ char *genReturn(Node *returnNode, int *size)
 
 char *genFunc(Node *funcNode)
 {
-    printf("$$: genFunc\n");
+    // printf("$$genFunc\n");
 
     int size = 0;
     char *code = "";
+    funcVars = NULL;
     // for function inside a function
     // save global counters in temps
     int currVarCount = varCount;
@@ -273,7 +283,7 @@ char *genFunc(Node *funcNode)
 
 char *genBlock(Node *blockNode, int *size)
 {
-    printf("$$: genBlock\n");
+    // printf("$$genBlock\n");
 
     char *code = "";
 
@@ -293,7 +303,7 @@ char *genBlock(Node *blockNode, int *size)
 
 Tac *genStringIndex(Node *stringNode, int *size)
 {
-    printInOrder(stringNode, 0);
+    // printInOrder(stringNode, 0);
     Tac *E = calloc(1, sizeof(Tac));
     E->var = "";
     E->code = "";
@@ -321,27 +331,67 @@ Tac *genStringIndex(Node *stringNode, int *size)
     return E;
 }
 
+bool findVar(char *var)
+{
+    // printf("$$findVar\n");
+    varsList *runner = funcVars;
+    while (runner)
+    {
+        if (strcmp(var, runner->var) == 0)
+            return true;
+        runner = runner->next;
+    }
+    return false;
+}
+
+void pushVar(char *var)
+{
+    // printf("$$pushVar\n");
+    varsList *runner = funcVars;
+    if (!funcVars)
+    {
+        funcVars = calloc(1, sizeof(varsList));
+        asprintf(&(funcVars->var), "%s", var);
+    }
+    else
+    {
+        while (runner->next)
+            runner = runner->next;
+
+        runner->next = calloc(1, sizeof(varsList));
+        asprintf(&(runner->next->var), "%s", var);
+    }
+}
+
 Tac *genLhs(Node *lhsNode, int *size)
 {
+    // printf("$$genLhs\n");
     Tac *lhs = calloc(1, sizeof(Tac));
     lhs->var = "";
     lhs->code = "";
-    if (strcmp(lhsNode->left->data, "IDENT") == 0)
-        lhs->var = lhsNode->left->left->data;
-    else
-        // string access
-        return genStringIndex(lhsNode->left, size);
 
+    if (strcmp(lhsNode->left->data, "IDENT") == 0)
+    {
+        if (!findVar(lhsNode->left->left->data))
+        {
+            *size += getSize(lhsNode);
+            pushVar(lhsNode->left->left->data);
+        }
+        lhs->var = lhsNode->left->left->data;
+    }
+    else
+    { // string access
+        return genStringIndex(lhsNode->left, size);
+    }
     return lhs;
 }
 
 char *genAss(Node *assNode, int *size)
 {
-    printf("$$: genAss\n");
+    // printf("$$genAss\n");
     char *code = "";
     Tac *left = genLhs(assNode->left, size);
     Tac *E = genExrp(assNode->right, size);
-    *size += getSize(assNode->right); // test
 
     if (strcmp(assNode->data, "^=") == 0 || (assNode->left->left && strcmp(assNode->left->left->data, "ARRAY ACCESS") == 0))
         asprintf(&(left->var), "*(%s)", left->var);
@@ -352,7 +402,7 @@ char *genAss(Node *assNode, int *size)
 
 char *genTac(char *idvar, char *str, char *evar)
 {
-    printf("$$: genTac\n");
+    // printf("$$genTac\n");
     char *code = "";
     if (lableFlag)
         asprintf(&code, "L%d\t%s%s%s\n", lableID, idvar, str, evar);
@@ -386,13 +436,13 @@ Tac *pushParams(Node *paramsNode, int *size)
 }
 Tac *genFunctionCall(Node *funcNode, int *size)
 {
-    printf("$$: genFunctionCall\n");
+    // printf("$$genFunctionCall\n");
     Tac *E = calloc(1, sizeof(Tac));
     E->code = "";
     E->var = "";
     if (strcmp(funcNode->data, "FUNCTION CALL") == 0)
     {
-        printf("$$: PARAMS\n");
+        // printf("$$PARAMS\n");
         E->var = freshVar();
         *size += getSize(funcNode);
         int currSize = *size;
@@ -405,7 +455,7 @@ Tac *genFunctionCall(Node *funcNode, int *size)
     }
     else
     {
-        printf("$$: NO PARAMS\n");
+        // printf("$$NO PARAMS\n");
         E->var = freshVar();
         *size += getSize(funcNode);
         asprintf(&(E->code), "%s%s", E->code, genTac(E->var, "= LCall ", getId(funcNode)));
@@ -429,7 +479,7 @@ Tac *genAddress(Node *addressNode, int *size)
 
 Tac *genContent(Node *contNode, int *size)
 {
-    printf("$$: genContent\n");
+    // printf("$$genContent\n");
     Tac *E = calloc(1, sizeof(Tac));
     E->code = "";
     E->var = "";
@@ -443,7 +493,7 @@ Tac *genContent(Node *contNode, int *size)
 
 char *genLogicLoop(Node *logicNode, int *size)
 {
-    printf("$$: genLogicLoop\n");
+    // printf("$$genLogicLoop\n");
     char *code = "";
     if (strcmp(logicNode->data, "IF") == 0)
     {
@@ -525,7 +575,7 @@ char *genLogicLoop(Node *logicNode, int *size)
 
 Tac *genExrp(Node *exprNode, int *size)
 {
-    printf("$$: genExrp\n");
+    // printf("$$genExrp\n");
 
     Tac *E = calloc(1, sizeof(Tac));
     E->code = "";
@@ -580,6 +630,7 @@ Tac *genExrp(Node *exprNode, int *size)
         Tac *E1 = genExrp(exprNode->left->left, size);
         Tac *E2 = genExrp(exprNode->left->right, size);
         E->var = freshVar();
+        *size += getSize(exprNode);
         char *gen = "";
         asprintf(&gen, "%s %s %s", E1->var, exprNode->left->data, E2->var);
         asprintf(&(E->code), "%s%s%s", E1->code, E2->code, genTac(E->var, "=", gen));
@@ -593,7 +644,9 @@ Tac *genExrp(Node *exprNode, int *size)
 
 int getSize(Node *expr)
 {
-    printf("$$: getSize\n");
+
+    // printf("$$getSize\n");
+    // printInOrder(expr, 0);
 
     if (expr->type == INTEGER)
         return 4;
@@ -610,7 +663,14 @@ int getSize(Node *expr)
     if (expr->type == CHAR)
         return 1;
     if (expr->type == BOOLEAN)
-        return 1;
+        return 4;
 
-    return 0;
+    if (expr->left)
+    {
+
+        if (strcmp("INTEGER", expr->left->data) == 0)
+            return 4;
+    }
+
+    return 4;
 }
